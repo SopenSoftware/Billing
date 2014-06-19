@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * class to hold Article data
+ *
+ * @package     Billing
+ */
+class Billing_Model_Article extends Tinebase_Record_Abstract
+{
+    /**
+     * key in $_validators/$_properties array for the filed which
+     * represents the identifier
+     *
+     * @var string
+     */
+    protected $_identifier = 'id';
+    
+    /**
+     * application the record belongs to
+     *
+     * @var string
+     */
+    protected $_application = 'Billing';
+    
+    /**
+     * list of zend validator
+     *
+     * this validators get used when validating user generated content with Zend_Input_Filter
+     *
+     * @var array
+     *
+     */
+    protected $_validators = array(
+        'id'                    => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+    	'article_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'article_group_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'vat_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => false),
+	    'article_unit_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'article_ext_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'name'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'description'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'comment'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'image'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'weight'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+	    'dimensions'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+	    'is_stock_article'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'stock_amount_total'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+	    'stock_amount_min'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+	    'rev_account_vat_in'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+	    'rev_account_vat_ex'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+	    'locked'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'hidden'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	// embed article prices for pricegroups, debitors
+    	'prices'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true)
+    );
+    protected $_dateFields = array(
+    // modlog
+    );
+    
+	public function setFromArray(array $_data)
+	{
+		if(empty($_data['weight']) || $_data['weight']==""){
+			unset($_data['weight']);
+		}
+		if(empty($_data['stock_amount_total']) || $_data['stock_amount_total']==""){
+			unset($_data['stock_amount_total']);
+		}
+		if(empty($_data['stock_amount_min']) || $_data['stock_amount_min']==""){
+			unset($_data['stock_amount_min']);
+		}
+		
+		parent::setFromArray($_data);
+	}
+
+	protected function _setFromJson(array &$_data)
+	{
+		if(empty($_data['weight']) || $_data['weight']==""){
+			unset($_data['weight']);
+		}
+		if(empty($_data['stock_amount_total']) || $_data['stock_amount_total']==""){
+			unset($_data['stock_amount_total']);
+		}
+		if(empty($_data['stock_amount_min']) || $_data['stock_amount_min']==""){
+			unset($_data['stock_amount_min']);
+		}		
+	}
+	
+	public function getPriceForDebitor($debitor){
+		try{
+			$priceGroupId = $debitor->__get('price_group_id');
+			if(is_object($priceGroupId)){
+				$priceGroupId = $priceGroupId->id;
+			}
+			$priceGroupId = (int) $priceGroupId;
+			
+			$debitorId = $debitor->__get('id');
+			try{
+				$price = $this->getPriceByDebitorId($debitorId);
+			}catch(Billing_Exception_Article $e){
+				$price = $this->getPriceByPriceGroupId($priceGroupId);
+			}
+			return $price;
+		}catch(Exception $e){
+			echo $e->__toString();
+			//throw new Billing_Exception_Article('Price for debitor with id: '. $debitorId . ' could not be retrieved. Exception: ' . $e->__toString());
+		}
+				
+	}
+	
+	public function getPriceByPriceGroupId($priceGroupId){
+		$prices = $this->getPrices();
+		if($prices && array_key_exists($priceGroupId, $prices['pricegroups'])){
+			return $prices['pricegroups'][$priceGroupId];
+		}
+		throw new Billing_Exception_Article('Price for article with id: '. $this->id.' and price_group_id: ' . $priceGroupId . ' not found.');
+	}
+	
+	public function getPriceByDebitorId($debitorId){
+		$prices = $this->getPrices();
+		if($prices && array_key_exists($debitorId, $prices['debitors'])){
+			return $prices['debitors'][$debitorId];
+		}
+		throw new Billing_Exception_Article('Price for article with id: '. $this->id.' and debitor_id: ' . $debitorId . ' not found.');
+	}
+	
+	public function getPrices(){
+		if(isset($this->prices)){
+			return $this->prices;
+		}
+		return null;
+	}
+}

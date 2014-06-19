@@ -1,0 +1,99 @@
+<?php
+/**
+ * 
+ * Controller Debitor
+ * 
+ * @copyright sopenGmbH Herzogenrath, www.sopen.de (2011)
+ * @author hhartl <hhartl@sopen.de>
+ *
+ */
+class Billing_Controller_Debitor extends Tinebase_Controller_Record_Abstract
+{
+    /**
+     * config of courses
+     *
+     * @var Zend_Config
+     */
+    protected $_config = NULL;
+    
+    /**
+     * the constructor
+     *
+     * don't use the constructor. use the singleton
+     */
+    private function __construct() {
+        $this->_applicationName = 'Billing';
+        $this->_backend = new Billing_Backend_Debitor();
+        $this->_modelName = 'Billing_Model_Debitor';
+        $this->_currentAccount = Tinebase_Core::getUser();
+        $this->_purgeRecords = FALSE;
+        $this->_doContainerACLChecks = FALSE;
+        $this->_config = isset(Tinebase_Core::getConfig()->billing) ? Tinebase_Core::getConfig()->billing : new Zend_Config(array());
+    }
+    
+    private static $_instance = NULL;
+    
+    /**
+     * the singleton pattern
+     *
+     * @return SoEventManager_Controller_SoEvent
+     */
+    public static function getInstance()
+    {
+        if (self::$_instance === NULL) {
+            self::$_instance = new self();
+        }
+        
+        return self::$_instance;
+    }
+    
+    /**
+     * Get empty record
+     * @return Billing_Model_Debitor
+     */
+    public function getEmptyDebitor(){
+     	$emptyDebitor = new Billing_Model_Debitor(null,true);
+     	return $emptyDebitor;
+    }
+    
+    /**
+     * 
+     * Get debitor by it's contact id
+     * @param int $contactId
+     */
+    public function getByContactId($contactId){
+    	return $this->_backend->getByContactId($contactId);
+    }
+    
+    /**
+     * 
+     * Fetches a debitor record by it's contact_id or creates it, if it does not exist
+     * @param int $contactId
+     */
+    public function getByContactOrCreate($contactId){
+    	try{
+    		$debitor = $this->_backend->getByContactId($contactId);
+    	}catch(Exception $e){
+    		$contact = Addressbook_Controller_Contact::getInstance()->get($contactId);
+    		$debitor = Addressbook_Custom_Contact::createDebitorFromContact($contact);
+    		$debitor = Billing_Controller_Debitor::getInstance()->get($debitor->getId());
+    	}
+
+		return $debitor;    	
+    }
+    
+    /**
+     * inspect creation of one record
+     * 
+     * @param   Tinebase_Record_Interface $_record
+     * @return  void
+     */
+    protected function _inspectCreate(Tinebase_Record_Interface $_record)
+    {
+    	$contact = Addressbook_Controller_Contact::getInstance()->get($_record->__get('contact_id'));
+    	$debitor = Addressbook_Custom_Contact::getDebitorFromContact($contact);
+    	$_record->__set('debitor_nr', $debitor->__get('debitor_nr'));
+    	$_record->__set('price_group_id', $debitor->__get('price_group_id'));
+    }
+}
+?>

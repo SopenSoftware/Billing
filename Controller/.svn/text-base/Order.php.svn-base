@@ -1,0 +1,726 @@
+<?php
+/**
+ *
+ * Controller Order
+ *
+ * @copyright sopenGmbH Herzogenrath, www.sopen.de (2011)
+ * @author hhartl <hhartl@sopen.de>
+ *
+ */
+class Billing_Controller_Order extends Tinebase_Controller_Record_Abstract
+{
+	const PROCESS_CONFIRMATION = 'confirm';
+	const PROCESS_DELIVERY = 'delivery';
+	const PROCESS_BILLING = 'billing';
+	//	const PARAMS_TEMPLATE = {'
+	//		orderId: null,
+	//		process: {
+	//			confirm:{
+	//				active: false
+	//			},
+	//			delivery:{
+	//				active: false
+	//			},
+	//			billing: {
+	//				active: false
+	//			}
+	//		}
+	//	';
+	/**
+	 * config of orders
+	 *
+	 * @var Zend_Config
+	 */
+	protected $_config = NULL;
+
+	/**
+	 * the constructor
+	 *
+	 * don't use the constructor. use the singleton
+	 */
+	private function __construct() {
+		$this->_applicationName = 'Billing';
+		$this->_backend = new Billing_Backend_Order();
+		$this->_modelName = 'Billing_Model_Order';
+		$this->_currentAccount = Tinebase_Core::getUser();
+		$this->_purgeRecords = FALSE;
+		$this->_doContainerACLChecks = FALSE;
+		$this->_opController = Billing_Controller_OrderPosition::getInstance();
+		$this->_config = isset(Tinebase_Core::getConfig()->billing) ? Tinebase_Core::getConfig()->billing : new Zend_Config(array());
+	}
+
+	private static $_instance = NULL;
+
+	/**
+	 * the singleton pattern
+	 *
+	 * @return SoEventManager_Controller_SoEvent
+	 */
+	public static function getInstance()
+	{
+		if (self::$_instance === NULL) {
+			self::$_instance = new self();
+		}
+		 
+		return self::$_instance;
+	}
+
+	/**
+	 * (non-PHPdoc)
+	 * @see Tinebase_Controller_Record_Abstract::_inspectCreate()
+	 */
+	protected function _inspectCreate(Tinebase_Record_Interface $_record)
+	{
+		$_record->__set('order_nr', Tinebase_NumberBase_Controller::getInstance()->getNextNumber('order_nr'));
+		if(!$_record->__get('payment_method_id')){
+			$_record->__set('payment_method_id', Billing_Controller_PaymentMethod::getInstance()->getDefaultPaymentMethod()->getId());
+		}
+	}
+
+	/**
+	 * Get empty record
+	 * @return Billing_Model_Order
+	 */
+	public function getEmptyOrder(){
+		$emptyOrder = new Billing_Model_Order(null,true);
+		return $emptyOrder;
+	}
+
+	public function orderReceipt($orderId, $receiptId){
+		$order = $this->get($orderId);
+		$rcptController = Billing_Controller_Receipt::getInstance();
+		$orderPosController = Billing_Controller_OrderPosition::getInstance();
+		$receipt = $rcptController->get($receiptId);
+		$positions = $rcptController->getOrderPositions($receiptId);
+		foreach($positions as $pos){
+			$position = clone $pos;
+			$pos->__set('id',null);
+			$pos->__set('order_id', $orderId);
+			$orderPosController->create($pos);
+		}
+		$order = $this->get($orderId);
+		return array(
+    		'success' => true,
+    		'result' => $order->toArray()
+		);
+		 
+	}
+
+	public function createMonition($orderId, $invoiceId){
+		$rcptController = Billing_Controller_Receipt::getInstance();
+		// load invoice (same as get with type check on invoice)
+		$invoice = $rcptController->getInvoice($invoiceId);
+		$positions = $rcptController->getOrderPositions($invoice->getId());
+		 
+		$monition = Billing_Model_Receipt::createMonition();
+		$monition->__set('order_id',$orderId);
+		$monition->__set('monition_fee',0);
+		$monition->__set('invoice_nr', $invoice->__get('invoice_nr'));
+		$rcptController->create($monition);
+		 
+		$rPosController = Billing_Controller_ReceiptPosition::getInstance();
+		$rPosController->addOrderPositions($monition, $positions);
+		 
+		$monition = $rcptController->get($monition->getId());
+		return array(
+    		'success' => true,
+    		'result' => $monition->toArray()
+		);
+	}
+
+	public function processOrder($orderId, $params){
+		if(array_key_exists('process', $params)){
+			$processSteps = $params['process'];
+		}else{
+			throw new Exception('Wrong params!');
+		}
+
+		$order = $this->get($orderId);
+		$hasShipping = false;
+		$hasBilling = false;
+		$aShipping = array();
+		$aBilling = array();
+		foreach($processSteps as $step => $methodParams){
+			switch($step){
+				case self::PROCESS_CONFIRMATION:
+					if($methodParams['active']){
+						$order->setConfirmed(new Zend_Date(strftime('%Y-%m-%d')));
+						$this->confirmOrder($orderId, $methodParams);
+					}
+					break;
+
+				case self::PROCESS_DELIVERY:
+					if($methodParams['active']){
+						$order->setDelivered();
+						$hasShipping = true;
+						$shipping = $this->deliverOrder($orderId, $methodParams);
+						$aShipping = $shipping->toArray();
+					}
+					break;
+
+				case self::PROCESS_BILLING:
+					if($methodParams['active']){
+						$order->setBilled();
+						$hasBilling = true;
+						$billing = $this->billOrder($orderId, $methodParams);
+						$aBilling = $billing->toArray();
+					}
+					break;
+			}
+		}
+		$order->flatten();
+		$this->update($order);
+		$order = $this->get($orderId);
+		return array(
+    		'success' => true,
+    		'result' => $order->toArray(),
+			'receipts' => array(
+				'shipping' => array(
+					'has_shipping' => $hasShipping,
+					'data' => $aShipping
+				),
+				'invoice' => array(
+					'has_invoice' => $hasBilling,
+					'data' => $aBilling
+				)
+			)
+		);
+	}
+
+	public function getOrderPositions($orderId){
+		return $this->_opController->getPositionsByOrderId($orderId);
+	}
+
+	private function attachReceipt($receipt, $orderId, $params){
+		$receipt->__set('order_id',$orderId);
+		$receipt = Billing_Controller_Receipt::getInstance()->create($receipt);
+		// add actual order positions to receipt (are getting referenced in bill_receipt_position)
+		$orderPositions = $this->getOrderPositions($orderId);
+		$this->_opController->addReceiptPositions($receipt, $orderPositions );
+		return $receipt;
+	}
+
+	public function confirmOrder($orderId, $params){
+		$receipt =  Billing_Model_Receipt::createConfirmation();
+		if(array_key_exists('data', $params)){
+			$receipt->setFromArray($params['data']);
+		}
+		if(array_key_exists('additionalTemplateData', $params)){
+			$receipt->setAdditionalData($params['additionalTemplateData']);
+		}
+		$receipt->__set('order_confirm_date', new Zend_Date(strftime('%Y-%m-%d')));
+		return $this->attachReceipt($receipt, $orderId, $params);
+	}
+
+	public function deliverOrder($orderId, $params){
+		$receipt =  Billing_Model_Receipt::createShipping();
+		if(array_key_exists('data', $params)){
+			$receipt->setFromArray($params['data']);
+		}
+		if(array_key_exists('additionalTemplateData', $params)){
+			$receipt->setAdditionalData($params['additionalTemplateData']);
+		}
+		$receipt->__set('shipping_date', new Zend_Date(strftime('%Y-%m-%d')));
+		return $this->attachReceipt($receipt, $orderId, $params);
+	}
+
+	public function billOrder($orderId, $params){
+		$receipt =  Billing_Model_Receipt::createInvoice();
+		if(array_key_exists('data', $params)){
+			$receipt->setFromArray($params['data']);
+		}
+		if(array_key_exists('additionalTemplateData', $params)){
+			$receipt->setAdditionalData($params['additionalTemplateData']);
+		}
+		$receipt->__set('invoice_date', new Zend_Date(strftime('%Y-%m-%d')));
+		return $this->attachReceipt($receipt, $orderId, $params);
+	}
+
+	public function getReceiptsByOrderId($orderId, $type = null, $sortInfo = null){
+		$rController = Billing_Controller_Receipt::getInstance();
+		$filterGroup = new Tinebase_Model_Filter_FilterGroup(array(),'AND');
+		$filter = new Tinebase_Model_Filter_Id('order_id','equals',$orderId);
+		$filterGroup->addFilter($filter);
+		if($type){
+			$filter = new Tinebase_Model_Filter_Text('type','equals',$type);
+			$filterGroup->addFilter($filter);
+		}
+		return $rController->search($filterGroup);
+	}
+	
+	/**
+	 * 
+	 * Completely reverse an invoice by creating a credit receipt
+	 * @param string $receiptId
+	 */
+	public function reverseInvoice($receiptId){
+		$rController = Billing_Controller_Receipt::getInstance();
+		$receipt = $rController->get($receiptId);
+		$order = $receipt->getForeignRecord('order_id', $this);
+		$rpController = Billing_Controller_ReceiptPosition::getInstance();
+		$opController = Billing_Controller_OrderPosition::getInstance();
+		$receiptPositions = $rpController->getByReceiptId($receiptId);
+		
+		$creditReceipt = Billing_Model_Receipt::createCredit();
+		$creditReceipt->__set('order_id', $order->getId());
+		$creditReceipt->__set('invoice_nr', $receipt->__get('invoice_nr'));
+		$creditReceipt->__set('credit_date', new Zend_Date());
+		$creditReceipt->__set('invoice_date', $receipt->__get('invoice_date'));
+		
+		$creditReceipt = $rController->create($creditReceipt);
+		
+		$rController->get($creditReceipt->getId());
+		$countPos = count($receiptPositions);
+		$creditPositions = array();
+		foreach($receiptPositions as $invoicePosition){
+			$creditPosition = clone $invoicePosition;
+			$creditPosition->__set('id', null);
+			$creditPosition->__set('position_nr', ++$countPos);
+			$creditPosition->__set('name', $creditPosition->__get('name') . ' -STORNO');
+			$opController->invert($creditPosition);
+			$creditPosition->flatten();
+			$creditPositions[] = $opController->create($creditPosition);
+		}
+		$rpController->addOrderPositions($creditReceipt, $creditPositions);
+		
+		return $creditReceipt;
+	}
+
+	/**
+	 *
+	 * Create quick order
+	 * -> creates order including receipts (invoice, and optional shipping doc)
+	 * @param 	array 	$data
+	 * @return	array	result
+	 */
+	public function createQuickOrder( $data ){
+		$contactId = $data['contactId'];
+		$paymentState = $data['paymentState'];
+		$paymentConditions = $data['paymentConditions'];
+		$paymentMethodId = $data['paymentMethodId'];
+		$withShippingDoc = $data['withShippingDoc'];
+		$positions = $data['positions'];
+
+		// get needed controllers
+		$receiptController = Billing_Controller_Receipt::getInstance();
+		$articleController = Billing_Controller_Article::getInstance();
+		 
+		$debitor = Billing_Controller_Debitor::getInstance()->getByContactOrCreate($contactId);
+		// create order
+		$order = $this->getEmptyOrder();
+		$order->__set('payment_state', $paymentState);
+		$order->__set('debitor_id', $debitor->getId());
+		$order->__set('price_group_id', $debitor->__get('price_group_id'));
+		$order->flatten();
+		$order = $this->create($order);
+
+		$this->addOrderPositions($order->getId(),$positions, $debitor);
+		
+		$params = array(
+			'process' => array(
+				'billing' => array(
+					'active' => true,
+					'data' => array(
+							'payment_method_id' => $paymentMethodId,
+							'payment_conditions' => $paymentConditions
+				)	
+		),
+				'delivery' => array(
+					'active' => $withShippingDoc
+		)
+		)
+		);
+
+		$this->processOrder($order->getId(), $params);
+
+		$invoices = $this->getReceiptsByOrderId($order->getId(),'INVOICE');
+		$shippings = $this->getReceiptsByOrderId($order->getId(),'SHIPPING');
+
+		return array(
+			'order_nr' => $order->__get('order_nr'),
+			'invoices' => $invoices->toArray(),
+			'shippings' =>$shippings->toArray()
+		);
+	}
+
+	public function createOrderForDebitor($debitorId, array $positions = null){
+
+		$debitor = Billing_Controller_Debitor::getInstance()->get($debitorId);
+		 
+		$order = $this->getEmptyOrder();
+		$order->__set('debitor_id', $debitor->getId());
+		$order->__set('price_group_id', $debitor->__get('price_group_id')->getId());
+		 
+		return $this->create($order);
+	}
+
+	public function addOrderPositions($orderId, $positions, $debitor){
+		$orderPositionController = Billing_Controller_OrderPosition::getInstance();
+		$articleController = Billing_Controller_Article::getInstance();
+		
+		// create order positions
+		$posCount = 0;
+		foreach($positions as $position){
+			++$posCount;
+			$articleId = $position['article_id'];
+			if($articleId){
+				$article = $articleController->get($articleId);
+				$orderPos = $orderPositionController->getPositionFromArticle($article, $debitor, $position);
+			}else{
+				$order = $this->get($orderId);
+				$order->flatten();
+				$orderPos = new Billing_Model_OrderPosition(null,true);
+				$orderPos->__set('price_group_id', $order->__get('price_group_id'));
+				$unitId = Billing_Controller_ArticleUnit::getInstance()->get(1);
+				$vatId = Billing_Controller_Vat::getInstance()->get(1);
+				
+				$orderPos->__set('amount',$position['amount']);
+				$orderPos->__set('unit_id',$unitId);
+				$orderPos->__set('vat_id',$vatId);
+				$orderPos->__set('name',$position['name']);
+				if(array_key_exists('additionalData', $position)){
+					$orderPos->setAdditionalData($position['additionalData']);
+				}
+			}
+			$orderPos->__set('position_nr', $posCount);
+			$orderPos->__set('price_brutto', $position['price_brutto']);
+			$orderPos->__set('price_netto', $position['price_netto']);
+			$orderPos->__set('total_brutto', $position['total_brutto']);
+			$orderPos->__set('total_netto', $position['total_netto']);
+			
+			$orderPos->__set('order_id',$orderId);
+			$orderPositionController->create($orderPos);
+		}	
+	}
+	
+	public function createReceipt($data, $transaction = null){
+		// TODO: Use specific Exceptions
+		if(!array_key_exists('receipt', $data)){
+			throw new Exception('Missing param receipt');
+		}
+		 
+		$aPReceipt = $data['receipt'];
+		 
+		if(!array_key_exists('type', $aPReceipt)){
+			throw new Exception('Missing param type');
+		}
+		 
+		$type = $aPReceipt['type'];
+		 
+		if(!Billing_Model_Receipt::isValidType($type)){
+			throw new Exception('Illegal/unknown receipt type');
+		}
+		 
+		$orderId = $aPReceipt['orderId'];
+		 
+		$receiptController = Billing_Controller_Receipt::getInstance();
+
+		$receipt = $receiptController->getEmptyReceipt();
+		$shippingDoc = null;
+		$receipt->__set('order_id',$orderId);
+		$receipt->__set('type', $type);
+
+		if(array_key_exists('receiptData', $aPReceipt)){
+			$receiptData = $aPReceipt['receiptData'];
+			foreach($receiptData as $key => $value){
+				$receipt->__set($key, $value);
+			}
+		}
+
+		$receipt = $receiptController->create($receipt);
+
+		if(array_key_exists('positions',$aPReceipt)){
+			$positions = $aPReceipt['positions'];
+			$receiptPositionController = Billing_Controller_OrderPosition::getInstance();
+			 
+			$posCount = 0;
+			foreach($positions as $posData){
+				$receiptPosition = $receiptPositionController->getEmptyOrderPosition();
+				$receiptPosition->__set('receipt_id', $receipt->getId());
+				$receiptPosition->__set('position_nr', ++$posCount);
+
+				foreach($posData['positionData'] as $key => $value){
+					if($key == 'price_group_id'){
+						if(is_array($value)){
+							$value = $value['id'];
+						}elseif(is_object($value)){
+							$value = $value->getId();
+						}
+					}
+					$receiptPosition->__set($key,$value);
+				}
+				if(array_key_exists('additionalData', $posData)){
+					$receiptPosition->setAdditionalData($posData['additionalData']);
+				}
+				$receiptPositionController->create($receiptPosition);
+			}
+		}
+		return $receipt->getId();
+	}
+
+	public function getRegistryData(){
+		$result = array(
+            'results'     => array(
+    			'PROCESS_CONFIRMATION' => self::PROCESS_CONFIRMATION,
+    			'PROCESS_DELIVERY' => self::PROCESS_DELIVERY,
+    			'PROCESS_BILLING' => self::PROCESS_BILLING
+		),
+            'totalcount'  => 0
+		);
+		return $result;
+	}
+
+	public function exportFibu($filters){
+		$db = Tinebase_Core::getDb();
+		$tm = Tinebase_TransactionManager::getInstance();
+		$tId = $tm->startTransaction($db);
+		try{
+			$pagination = array('sort' => 'op_nr', 'dir' => 'ASC');
+			$oIController = Billing_Controller_OpenItem::getInstance();
+			$debController = Billing_Controller_Debitor::getInstance();
+			
+			$rController = Billing_Controller_Receipt::getInstance();
+			$oController = Billing_Controller_Order::getInstance();
+			$oPController = Billing_Controller_OrderPosition::getInstance();
+			$aController = Billing_Controller_Article::getInstance();
+			$cController = 
+				Addressbook_Controller_Contact::getInstance()->
+					_setRightChecks(false)->
+					_setContainerACLChecks(false);
+
+			$fibuFilter = array(
+				'field' => 'fibu_exp_date',
+				'operator' => 'isnull',
+				'value' => ''
+			);
+			$filters = Zend_Json::decode($filters);
+			$filters[] = $fibuFilter;
+			$filter = new Billing_Model_OpenItemFilter($filters, 'AND');
+			
+			$openItems =  $oIController->search($filter,new Tinebase_Model_Pagination($pagination));
+
+			/*
+			 *
+					- Rechnungsnummer (redundant für alle Positionen)
+					
+					- Rechnungsdatum (redundant für alle Positionen)
+					
+					- Datum Fälligkeit (redundant für alle Positionen)
+					
+					- Debitorennummer (redundant für alle Positionen)
+					
+					- Betrag netto
+					
+					- MWST
+					
+					- Betrag brutto
+					
+					- Artikelnummer
+					
+					- Artikelbezeichnung
+					
+					- Erlöskonto (aus Artikelstamm gemäß MWST = 0 oder > 0)
+		 	*
+		 	*/
+			$csvArray = array(
+    		'Rechnungsnummer',
+    		'Rechnungsdatum',
+    		'Datum Fälligkeit',
+			'Debitorennummer',
+	    	'Betrag netto',
+			'MWST',
+			'Betrag brutto',
+			'Artikelnummer',
+	    	'Artikelbezeichnung',
+	    	'Erlöskonto'
+	    	);
+	    	/*
+	    	 * 
+	    	 * 
+	    	  	- Debitorennummer
+
+				- Vorname
+				
+				- Name
+				
+				- Anrede
+				
+				- Titel
+				
+				- Firma 1
+				
+				- Firma 2
+				
+				- Zusatz
+				
+				- Straße
+				
+				- PLZ
+				
+				- Ort
+				
+				- Land
+	    	 */
+	    	$debsArray = array(
+    		'Debitorennummer',
+    		'Vorname',
+    		'Name',
+			'Anrede',
+	    	'Titel',
+			'Firma 1',
+			'Firma 2',
+			'Zusatz',
+	    	'Straße',
+	    	'PLZ',
+	    	'Ort',
+	    	'Land'
+	    	);
+	    	 
+	    	$tempFilePath = CSopen::instance()->getCustomerPath().'/customize/data/documents/temp/';
+	    	$itemsFilename = $tempFilePath.strftime('%Y%m%d%H%M%S').'items_temp.csv';
+	    	$debsFilename = $tempFilePath.strftime('%Y%m%d%H%M%S').'debs_temp.csv';
+	    	$zipFilename = $tempFilePath.strftime('%Y%m%d%H%M%S').'archive_temp.csv';
+	    	
+	    	if(file_exists($itemsFilename)){
+	    		unlink($itemsFilename);
+	    	}
+	    	$itemsFileHandle = fopen($itemsFilename, 'w');
+	    	Tinebase_Export_Csv::fputcsv($itemsFileHandle, $csvArray);
+	    	
+	    	if(file_exists($debsFilename)){
+	    		unlink($debsFilename);
+	    	}
+	    	
+	    	
+	    	$debsFileHandle = fopen($debsFilename, 'w');
+	    	Tinebase_Export_Csv::fputcsv($debsFileHandle, $debsArray);
+
+	    	$zeroVat = Billing_Controller_Vat::getInstance()->getByName('0');
+	    	$creditorZeroAccount = $zeroVat->__get('credit_account');
+	    	$fibuExpDate = new Zend_Date(strftime('%Y-%m-%d'));
+	    	foreach ($openItems as $oI) {
+	    		$oI->flatten();
+	    		$receiptId = $oI->__get('receipt_id');
+	    		$receipt = $rController->get($receiptId);
+	    		if(!$receipt->__get('fibu_exp_date')){
+	    			$receipt->__set('fibu_exp_date', $fibuExpDate);
+	    			$receipt->flatten();
+	    			//print_r($receipt);
+	    			$rController->update($receipt);
+	    		}
+	    		$oI->__set('fibu_exp_date', $fibuExpDate);
+	    		$oIController->update($oI);
+	    		$positions = $rController->getOrderPositions($receiptId);
+	    		//$sums = $rController->getReceiptSumValues($receiptId);
+	    		$orderId = $receipt->__get('order_id');
+	    			
+	    		$order = $oController->get($orderId);
+	    		$debitor = $order->__get('debitor_id');
+	    		$debitorNr = $debitor->__get('debitor_nr');
+	    		$contact = $debitor->getForeignRecord('contact_id', $cController);
+	    		$debitor->flatten();
+	    		$contactId = $debitor->__get('contact_id');
+	    		
+	    		$name = $contact->__get('n_fileas');
+	    		$receiptNr = $oI->__get('receipt_nr');
+	    		$receiptDate = $receipt->__get('invoice_date');
+	    		$dueDate = $receipt->__get('due_date');
+	    		
+	    		if(!$debitor->__get('fibu_exp_date')){
+		    		$drawee = $contact->getInvoiceDrawee();
+		    		$postal = $drawee->getPostalAddress();
+		    		
+		    		// export debitor
+		    		$debsArray = array(
+		    			$debitorNr,
+		    			$contact->__get('n_given'),
+		    			$contact->__get('n_family'),
+		    			$drawee->getSalutationText(),
+		    			$drawee->getTitle(),
+		    			$drawee->getCompany1(),
+		    			$drawee->getCompany2(),
+		    			$postal->getCo(),
+		    			$postal->getStreet(),
+		    			$postal->getPostalCode(),
+		    			$postal->getLocation(),
+		    			$postal->getCountry()
+	    			);
+	    			Tinebase_Export_Csv::fputcsv($debsFileHandle, $debsArray);
+	    			$debitor->__set('fibu_exp_date', new Zend_Date());
+	    			$debController->update($debitor);
+	    		}
+	    		
+	    		
+//	    		$values = array();
+//	    		$values[] = array(
+//				'value' => $sums['total']['sum']['netto'],
+//				'credit_account' => $creditorZeroAccount
+//	    		);
+//	    			
+//	    		foreach($sums['vat_sums'] as $vatSum){
+//	    			$values[] = array(
+//					'value' =>  $vatSum['sum']['netto'],
+//					'credit_account' =>  $vatSum['sum']['vatcreditaccount']
+//	    			);
+//	    		}
+	    			
+	    		foreach($positions as $position){
+					$netto = $position->__get('total_netto');
+					$brutto = $position->__get('total_brutto');
+					$vatSum = $oPController->getVatSum($position);
+	    			$article = $position->getForeignRecord('article_id', $aController);
+	    			$articleName = $article->__get('name');
+	    			$articleNr = $article->__get('article_nr');
+	    			$revAccount = $oPController->getRevenueAccountAccordingToVat($position);
+	    			$csvArray = array(
+	    			$receiptNr,
+	    			$receiptDate,
+	    			$dueDate,
+	    			$debitorNr,
+	    			number_format($netto,2,',','.'),
+	    			number_format($vatSum,2,',','.'),
+	    			number_format($brutto,2,',','.'),
+	    			$articleNr,
+					$articleName,
+	    			$revAccount
+	    			);
+	    			Tinebase_Export_Csv::fputcsv($itemsFileHandle, $csvArray);
+	    		}
+	    	}
+	    	
+	    	fclose($itemsFileHandle);
+	    	fclose($debsFileHandle);
+	    	
+	    	// -> generate zip archive containing Debitoren.csv and Forderungen.csv
+	    	$zip = new ZipArchive();
+			$zipFile = $zipFilename.".zip";
+	    	if ($zip->open($zipFile, ZIPARCHIVE::CREATE)!==TRUE) {
+		    	exit("cannot open <$zipFile>\n");
+			}
+			
+			$zip->addFile($debsFilename, 'Debitoren.csv');
+			$zip->addFile($itemsFilename, 'Forderungen.csv');
+			
+			$zip->close();
+	    	$tm->commitTransaction($tId);
+
+		}catch(Exception $e){
+			$tm->rollback($tId);
+			echo $e->__toString();
+			exit;
+		}
+		 
+		header("Content-type: application/zip;\n"); 
+		header("Content-Transfer-Encoding: binary");
+		$len = filesize($zipFile);
+		header("Content-Length: $len;\n");
+
+		header("Content-Disposition: attachment; filename=\"DATEV.zip\";\n\n");
+		readfile($zipFile);
+		
+		unlink($zipFile);
+		unlink($debsFilename);
+		unlink($itemsFilename);
+	}
+}
+?>

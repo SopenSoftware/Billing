@@ -1,0 +1,298 @@
+
+billing tables:
+
+bill_mandator
+-------------
+id
+contact_id
+container_id
+created_by
+creation_time
+last_modified_by
+last_modified_time
+is_deleted
+deleted_time
+deleted_by
+
+--->>>>
+TODO: maybe better to eliminate contact_id's
+-> handle within 2 extra tables:
+bill_creditor
+-------------
+id (numeric -> creditor_nr)
+mandator_id
+contact_id
+
+bill_debitor
+------------
+id	(numeric -> debitor_nr)
+mandator_id
+contact_id
+
+--->>>>
+
+bill_abo (central abo scheduling)
+--------
+begin_date
+cycle
+(next_exec_date: must not be stored, calculated dynamically)
+last_exec_date
+end_date
+
+bill_number_base
+----------------
+id
+key
+description
+formula
+number1
+number2
+number3
+
+[[Examples value key:
+mandator_id
+calc_nr
+bid_nr
+confirm_nr
+ship_doc_nr
+invoice_nr
+]]
+
+bill_vat
+--------
+id
+mandator_id
+name
+value
+is_default
+
+bill_price_group
+----------------
+id
+mandator_id
+name
+comment
+
+bill_article_group
+-------------
+id
+mandator_id
+name
+comment
+image
+
+bill_stock_location
+-------------------
+id
+mandator_id
+location
+// to be extended: capacity, contact_id etc.
+
+
+bill_article_supply
+-------------------
+id
+mandator_id
+stock_location_id
+amount
+last_inventory_date
+last_order_date
+
+bill_article_unit
+-----------------
+id
+mandator_id
+name
+data
+
+bill_article
+------------
+id
+mandator_id
+article_group_id
+vat_id
+article_unit_id
+article_ext_nr
+name
+description
+comment
+image
+weight
+dimensions
+is_stock_article
+stock_amount_total
+stock_amount_min
+rev_account_vat_in
+rev_account_vat_ex
+locked
+hidden
+
+bill_sell_price
+---------------
+id
+mandator_id
+price_group_id
+article_id
+price_netto
+price_brutto
+
+
+bill_article_supplier
+---------------------
+id
+mandator_id
+// contact_id --> change to Debitor/Kreditor
+creditor_id (contact embedded)
+article_id
+((creditor_ext_id)) (gets emitted by contact)
+((name)) (gets emitted by contact)
+price
+last_order_date
+
+
+
+bill_stock_flow
+---------------
+id
+mandator_id
+article_id
+stock_location_id
+price_netto
+direction
+booking_date
+amount
+reason
+
+
+bill_article_customer
+---------------------
+id
+mandator_id
+article_id
+// contact_id --> change to Debitor/Kreditor
+debitor_id (contact embedded)
+vat_id
+price_netto
+price_brutto
+
+bill_job
+--------
+id
+mandator_id
+responsible_account_id
+name
+description
+start_date
+end_date
+
+
+bill_order
+----------
+id
+mandator_id
+job_id
+// contact_id --> change to Debitor/Kreditor
+debitor_id (contact embedded)
+job_ext_id (timeaccount_id?) (both: take job_nr or timeaccount_id)
+price_group_id
+account_id
+[TODO: later] invoice_abo_id
+[TODO: later] shipping_abo_id
+cust_order_nr
+
+bill_receipt
+------------
+id
+mandator_id
+order_id
+- // qualifying type + self referring set
+type (enum: calc, part_ship, ship, bid, confirm, part_invoice, invoice)
+
+- // reference to doc template
+template_id
+template_varset_id
+-
+order_nr (two numbercircles according to order type (customer,supplier)
+calc_nr
+bid_nr
+confirm_nr
+part_ship_nr
+ship_nr
+part_invoice_nr
+invoice_nr
+discount_percentage
+discount_total
+
+bid_date
+bid_shipping_date
+confirm_shipping_date
+order_in_date
+order_confirm_date
+shipping_date
+invoice_date
+fibu_exp_date
+
+bill_receipt_receipt
+--------------------
+receipt_id
+mandator_id
+parent_receipt_id
+type (enum: calc, part_ship_doc, ship_doc, bid, confirm, part_invoice, invoice)
+sort_order
+
+
+bill_receipt_position
+---------------------
+id
+mandator_id
+receipt_id
+article_id
+price_group_id
+unit_id
+vat_id
+position_nr
+price_netto
+amount
+discount_percentage
+discount_total
+weight
+(pricegroup: emitted by price_group_id)
+name
+description
+total_netto
+total_brutto
+total_weight
+optional
+
+bill_open_item
+---------------
+id
+mandator_id
+receipt_id
+// contact_id --> change to Debitor/Kreditor
+debitor_id (contact embedded)
+((debitor_ext_id)) emitted by contact
+invoice_date
+due_date
+fibu_exp_date
+total_netto
+total_brutto
+
+bill_payment
+------------
+id
+mandator_id
+receipt_id
+open_item_id
+// contact_id --> change to Debitor/Kreditor
+debitor_id (contact embedded)
+((debitor_ext_id)) emitted by contact
+payment_date
+amount
+usage
+
+
+
+
+
+

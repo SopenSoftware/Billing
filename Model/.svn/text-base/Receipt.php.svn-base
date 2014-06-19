@@ -1,0 +1,336 @@
+<?php
+
+/**
+ * class to hold Brevet data
+ *
+ * @package     Billing
+ */
+class Billing_Model_Receipt extends Tinebase_Record_Abstract
+{
+	const TYPE_CALCULATION = 'CALCULATION';
+	const TYPE_BID = 'BID';
+	const TYPE_CONFIRM = 'CONFIRM';
+	const TYPE_PARTSHIP = 'PARTSHIP';
+	const TYPE_SHIPPING = 'SHIPPING';
+    const TYPE_PARTINVOICE = 'PARTINVOICE';
+	const TYPE_INVOICE = 'INVOICE';
+	const TYPE_CREDIT = 'CREDIT';
+	const TYPE_MONITION = 'MONITION';
+	
+	
+	protected static $allowedTypes = array(
+		self::TYPE_CALCULATION => true,
+		self::TYPE_BID => true,
+		self::TYPE_CONFIRM => true,
+		self::TYPE_PARTSHIP => true,
+		self::TYPE_SHIPPING => true,
+		self::TYPE_PARTINVOICE => true,
+		self::TYPE_INVOICE => true,
+		self::TYPE_CREDIT => true,
+		self::TYPE_MONITION => true
+	);
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $type
+	 * @throws Exception
+	 */
+	public static function create($type){
+		if(!self::isValidType($type)){
+			throw new Exception('Invalid receipt type given');
+		}
+		$obj = new self();
+		$obj->__set('type', $type);
+		return $obj;
+	}
+	/**
+	 * 
+	 * Enter description here ...
+	 */
+	public static function createConfirmation(){
+		return self::create(self::TYPE_CONFIRM);
+	}
+	/**
+	 * 
+	 * Enter description here ...
+	 */
+	public static function createShipping(){
+		return self::create(self::TYPE_SHIPPING);
+	}
+	/**
+	 * 
+	 * Enter description here ...
+	 */
+	public static function createInvoice(){
+		return self::create(self::TYPE_INVOICE);
+	}
+	
+	public static function createCredit(){
+		return self::create(self::TYPE_CREDIT);
+	}
+	
+	public static function createMonition(){
+		return self::create(self::TYPE_MONITION);
+	}
+	
+	public function isInvoice(){
+		return $this->__get('type') == self::TYPE_INVOICE;
+	}
+	
+	public function isCredit(){
+		return $this->__get('type') == self::TYPE_CREDIT;
+	}
+	
+    /**
+     * key in $_validators/$_properties array for the filed which
+     * represents the identifier
+     *
+     * @var string
+     */
+    protected $_identifier = 'id';
+    
+    /**
+     * application the record belongs to
+     *
+     * @var string
+     */
+    protected $_application = 'Billing';
+    
+    /**
+     * 
+     * Check whether a type is allowed/known
+     * @param string $type
+     */
+    public static function isValidType( $type ){
+    	return array_key_exists( $type, self::$allowedTypes );
+    }
+    
+    /**
+     * list of zend validator
+     *
+     * this validators get used when validating user generated content with Zend_Input_Filter
+     *
+     * @var array
+     *
+     */
+    protected $_validators = array(
+        'id'                    => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+    	'order_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'payment_method_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+     	'type'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'calc_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'bid_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'confirm_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'part_ship_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'ship_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'part_invoice_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'invoice_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'credit_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'monition_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'monition_fee'		 => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'monition_level'		 => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'discount_percentage'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'discount_total'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'bid_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'bid_shipping_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'confirm_shipping_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'order_in_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'order_confirm_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'shipping_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'invoice_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'credit_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'fibu_exp_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'due_date'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'upper_textblock'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'lower_textblock'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'shipping_conditions'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'payment_conditions'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'payment_type'	  		=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        // modlog
+       	'created_by'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'creation_time'         => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'last_modified_by'      => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'last_modified_time'    => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'is_deleted'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'deleted_time'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'deleted_by'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	// tags, notes etc.
+    	'tags'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'notes'                 => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        //'relations'             => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'customfields'          => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => array()),
+    	'preview_template_id'  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'template_id'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'print_date'    => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'total_netto'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'total_brutto'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'total_weight'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'pos_count'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'additional_template_data'          => array(Zend_Filter_Input::ALLOW_EMPTY => true)
+    );
+    protected $_dateFields = array(
+        // modlog
+     	'creation_time',
+        'last_modified_time',
+        'deleted_time',
+        //
+	    'bid_date',
+	    'bid_shipping_date',
+	    'confirm_shipping_date',
+	    'order_in_date',
+	    'order_confirm_date',
+	    'shipping_date',
+	    'invoice_date',
+	    'fibu_exp_date',
+	    'due_date'
+    );
+    
+	public function setFromArray(array $_data)
+	{
+		if(empty($_data['calc_nr']) || $_data['calc_nr']==""){
+			unset($_data['calc_nr']);
+		}
+		if(empty($_data['bid_nr']) || $_data['bid_nr']==""){
+			unset($_data['bid_nr']);
+		}
+		if(empty($_data['confirm_nr']) || $_data['confirm_nr']==""){
+			unset($_data['confirm_nr']);
+		}
+		if(empty($_data['part_ship_nr']) || $_data['part_ship_nr']==""){
+			unset($_data['part_ship_nr']);
+		}		
+		if(empty($_data['ship_nr']) || $_data['ship_nr']==""){
+			unset($_data['ship_nr']);
+		}				
+		
+		if(empty($_data['part_invoice_nr']) || $_data['part_invoice_nr']==""){
+			unset($_data['part_invoice_nr']);
+		}				
+		
+		if(empty($_data['invoice_nr']) || $_data['invoice_nr']==""){
+			$_data['invoice_nr'] = null;
+		}		
+
+		if(empty($_data['bid_date']) || $_data['bid_date']==""){
+			unset($_data['bid_date']);
+		}
+		
+			if(empty($_data['bid_shipping_date']) || $_data['bid_shipping_date']==""){
+			unset($_data['bid_shipping_date']);
+		}
+		
+		if(empty($_data['shipping_date']) || $_data['shipping_date']==""){
+			unset($_data['shipping_date']);
+		}
+		
+				
+		if(empty($_data['confirm_shipping_date']) || $_data['confirm_shipping_date']==""){
+			unset($_data['confirm_shipping_date']);
+		}
+		if(empty($_data['order_in_date']) || $_data['order_in_date']==""){
+			unset($_data['order_in_date']);
+		}
+		if(empty($_data['invoice_date']) || $_data['invoice_date']==""){
+			unset($_data['invoice_date']);
+		}
+		if(empty($_data['valid_to_date']) || $_data['valid_to_date']==""){
+			unset($_data['valid_to_date']);
+		}
+		if(empty($_data['print_date']) || $_data['print_date']==""){
+			$_data['print_date'] = null;
+		}
+		if(empty($_data['due_date']) || $_data['due_date']==""){
+			$_data['due_date'] = null;
+		}
+		if(empty($_data['discount_total']) || $_data['discount_total']==""){
+			$_data['discount_total']=0;
+		}	
+
+		parent::setFromArray($_data);
+	}
+
+	protected function _setFromJson(array &$_data)
+	{
+		if(empty($_data['calc_nr']) || $_data['calc_nr']==""){
+			unset($_data['calc_nr']);
+		}
+		if(empty($_data['bid_nr']) || $_data['bid_nr']==""){
+			unset($_data['bid_nr']);
+		}
+		if(empty($_data['confirm_nr']) || $_data['confirm_nr']==""){
+			unset($_data['confirm_nr']);
+		}
+		if(empty($_data['part_ship_nr']) || $_data['part_ship_nr']==""){
+			unset($_data['part_ship_nr']);
+		}		
+		if(empty($_data['ship_nr']) || $_data['ship_nr']==""){
+			unset($_data['ship_nr']);
+		}		
+		
+		if(empty($_data['part_invoice_nr']) || $_data['part_invoice_nr']==""){
+			unset($_data['part_invoice_nr']);
+		}
+						
+		if(empty($_data['invoice_nr']) || $_data['invoice_nr']==""){
+			unset($_data['invoice_nr']);
+		}	
+
+		if(empty($_data['bid_date']) || $_data['bid_date']==""){
+			unset($_data['bid_date']);
+		}
+		
+		if(empty($_data['shipping_date']) || $_data['shipping_date']==""){
+			unset($_data['shipping_date']);
+		}
+		
+			
+		if(empty($_data['confirm_shipping_date']) || $_data['confirm_shipping_date']==""){
+			unset($_data['confirm_shipping_date']);
+		}
+		if(empty($_data['order_in_date']) || $_data['order_in_date']==""){
+			unset($_data['order_in_date']);
+		}
+		if(empty($_data['bid_shipping_date']) || $_data['bid_shipping_date']==""){
+			unset($_data['bid_shipping_date']);
+		}
+		
+		if(empty($_data['invoice_date']) || $_data['invoice_date']==""){
+			unset($_data['invoice_date']);
+		}
+		if(empty($_data['fibu_exp_date']) || $_data['fibu_exp_date']==""){
+			unset($_data['fibu_exp_date']);
+		}
+		if(empty($_data['print_date']) || $_data['print_date']==""){
+			$_data['print_date'] = null;
+		}
+		if(empty($_data['due_date']) || $_data['due_date']==""){
+			$_data['due_date'] = null;
+		}
+		if(empty($_data['discount_total']) || $_data['discount_total']==""){
+			$_data['discount_total']=0;
+		}	
+	}
+	
+    /**
+     * 
+     * Set array of additional data json encoded
+     * @param array $data
+     */
+    public function setAdditionalData(array $data){
+    	$this->__set('additional_template_data', Zend_Json::encode($data));
+    }
+    
+    /**
+     * 
+     * Get Additional data as array (json decoded)
+     * @return	array
+     */
+    public function getAdditionalData(){
+    	return Zend_Json::decode($this->__get('additional_template_data'));
+    }
+}
+
+
+
+
+

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+"Bank-leitzahl";
+"Merkmal";
+"Bezeichnung";
+"PLZ";
+"Ort";
+"Kurzbezeichnung";
+"PAN";
+"BIC";
+"Prüfziffer-berechnungs-methode";
+"Datensatz-nummer";
+"Änderungs-kennzeichen";
+"Bankleitzahl-löschung";
+"Nachfolge-Bankleitzahl"
+
+-->
+<config>
+    <model>Billing_Model_Bank</model>
+    <plugin>Billing_Import_BankCsv</plugin>
+    <type>import</type>
+    <headline>1</headline>
+    <dryrun>0</dryrun>
+    <delimiter>;</delimiter>
+    <description>sopen Bank import</description>
+    <mapping>
+        <field>
+            <source>Bank-leitzahl</source>
+            <destination>code</destination>
+        </field>
+        <field>
+            <source>Merkmal</source>
+            <destination>att</destination>
+        </field>
+        <field>
+            <source>Bezeichnung</source>
+            <destination>name</destination>
+        </field>
+        <field>
+            <source>PLZ</source>
+            <destination>postal_code</destination>
+        </field>
+        <field>
+            <source>Ort</source>
+            <destination>location</destination>
+        </field>
+        <field>
+            <source>Kurzbezeichnung</source>
+            <destination>short_name</destination>
+        </field>
+        <field>
+            <source>PAN</source>
+            <destination>pan</destination>
+        </field>
+		<field>
+            <source>BIC</source>
+            <destination>bic</destination>
+        </field>
+		<field>
+            <source>Prüfziffer-berechnungs-methode</source>
+            <destination>validate</destination>
+        </field>
+		<field>
+            <source>Datensatz-nummer</source>
+            <destination>record_number</destination>
+        </field>
+		<field>
+            <source>Änderungs-kennzeichen</source>
+            <destination>change_sign</destination>
+        </field>
+		<field>
+            <source>Bankleitzahl-löschung</source>
+            <destination>to_be_deleted</destination>
+        </field>
+		<field>
+            <source>Nachfolge-Bankleitzahl</source>
+            <destination>follow_code</destination>
+        </field>
+    </mapping>
+</config>

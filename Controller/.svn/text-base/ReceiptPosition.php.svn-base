@@ -1,0 +1,115 @@
+<?php
+/**
+ * 
+ * Controller ReceiptPosition
+ * 
+ * @copyright sopenGmbH Herzogenrath, www.sopen.de (2011)
+ * @author hhartl <hhartl@sopen.de>
+ *
+ */
+class Billing_Controller_ReceiptPosition extends Tinebase_Controller_Record_Abstract
+{
+    /**
+     * config of courses
+     *
+     * @var Zend_Config
+     */
+    protected $_config = NULL;
+    
+    /**
+     * the constructor
+     *
+     * don't use the constructor. use the singleton
+     */
+    private function __construct() {
+        $this->_applicationName = 'Billing';
+        $this->_backend = new Billing_Backend_ReceiptPosition();
+        $this->_modelName = 'Billing_Model_ReceiptPosition';
+        $this->_currentAccount = Tinebase_Core::getUser();
+        $this->_purgeRecords = FALSE;
+        $this->_doContainerACLChecks = FALSE;
+        $this->_config = isset(Tinebase_Core::getConfig()->billing) ? Tinebase_Core::getConfig()->billing : new Zend_Config(array());
+    }
+    
+    private static $_instance = NULL;
+    
+    /**
+     * the singleton pattern
+     *
+     * @return SoEventManager_Controller_SoEvent
+     */
+    public static function getInstance()
+    {
+        if (self::$_instance === NULL) {
+            self::$_instance = new self();
+        }
+        
+        return self::$_instance;
+    }
+    
+    /**
+     * Get empty record
+     * @return Billing_Model_ReceiptPosition
+     */
+    public function getEmptyReceiptPosition(){
+     	$emptyReceiptPosition = new Billing_Model_ReceiptPosition(null,true);
+     	return $emptyReceiptPosition;
+    }
+    
+    public function getByReceiptId($receiptId){
+    	return $this->_backend->getByReceiptId($receiptId);
+    }
+    
+    public function getPositionsByReceiptId($ReceiptId){
+    	return $this->_backend->getByReceiptId($ReceiptId);
+    }
+    
+    private function inspectAddOrderPosition($receipt, $oPosition){
+    	// if its an invoice -> decrease stock amount
+    	if($receipt->isInvoice() || $receipt->isCredit()){
+    		$stfController = Billing_Controller_StockFlow::getInstance();
+    		$sf = new Billing_Model_StockFlow(null,true);
+    		$stockLocation = Billing_Controller_StockLocation::getInstance()->getDefaultStockLocation();
+ 
+    		$stockLocationId = $stockLocation->getId();
+    		$article = $oPosition->getForeignRecord('article_id', Billing_Controller_Article::getInstance());
+    		if($article->__get('is_stock_article')){
+	    		$articleId = $article->getId();
+	    		$priceNetto = $oPosition->__get('price_netto');
+	    		$direction = 'OUT';
+	    		$bookingDate = strftime('%Y-%m-%d');
+	    		$amount = $oPosition->__get('amount');
+	    		$reason = 'Lieferung';
+	    		$sf->__set('article_id',$articleId);
+	    		$sf->__set('stock_location_id',$stockLocationId);
+	    		$sf->__set('price_netto',$priceNetto);
+	    		$sf->__set('direction',$direction);
+	    		$sf->__set('booking_date',$bookingDate);
+	    		$sf->__set('amount',$amount);
+	    		$sf->__set('reason',$reason);
+	    		$stfController->create($sf);
+    		}
+    	}	
+    }
+    
+    /**
+     * 
+     * Add receipt positions
+     * @param unknown_type $receipt
+     * @param array $positions	Array of objects: Billing_Model_Receipt
+     */
+    public function addOrderPositions($receipt, $orderPositions){
+    	$receiptId = $receipt->getId();
+    	$i = 0;
+    	foreach($orderPositions as $oPosition){
+    		$oPositionId = $oPosition->getId();
+    		$this->inspectAddOrderPosition($receipt, $oPosition);
+    		$rPosition = $this->getEmptyReceiptPosition();
+    		$rPosition->__set('receipt_id',$receiptId);
+    		$rPosition->__set('order_position_id', $oPositionId);
+    		$rPosition->__set('position_nr', ++$i);
+    		$pos = $this->create($rPosition);
+    	}
+    }    
+}
+?>

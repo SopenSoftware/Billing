@@ -1,0 +1,63 @@
+
+
+##ADRESSE.RE_ANSCHRIFT##
+
+
+
+
+
+
+
+
+
+Rechnung 
+
+Rg.-Nummer: 
+##R.NR##
+Bestellnummer:
+##R.BESTNR##
+Datum: 
+27.03.2011
+Jobnummer: 
+##R.JOBNR##
+Kundennummer:
+##R.CUSTNR##
+Lieferdatum:
+##R.SHIPDAT##
+
+
+
+Sehr geehrter Herr Dr. Hartl,
+
+wir erlauben uns, folgende Positionen in Rechnung zu stellen:
+
+Pos.
+Menge
+Einh.
+Beschreibung
+Einzelpreis
+Betrag netto
+MWST %
+##p.nr##
+##p.amount##
+##p.unit##
+Artikel-Nr. ##p.article_nr##
+##p.article_name##
+##p.article_desc##
+##p.unit_price_netto##
+##p.price_netto##
+##p_vat##
+
+Nettobetrag EUR
+MWST
+Bruttobetrag EUR
+##vn_netto##
+##vn_vat##
+##vn_brutto##
+##vn_netto_sum##
+##vn_vat_sum##
+##vn_brutto_sum##
+
+
+Bitte überweisen Sie den Betrag auf das hier angegebene Konto.
+Zahlbar innerhalb von 14 Tagen ohne Abzug.

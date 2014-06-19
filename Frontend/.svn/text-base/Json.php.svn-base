@@ -1,0 +1,888 @@
+<?php
+/**
+ * sopen
+ *
+ * @package     Billing
+ * @subpackage  Frontend
+ * @license     http://www.gnu.org/licenses/agpl.html AGPL Version 3
+ * @author      Hans-Jürgen Hartl
+ * @copyright   Copyright (c) 2011 sopen GmbH (http://www.sopen.de)
+ * @version     $Id:  $
+ *
+ */
+
+/**
+ * backend class for Zend_Json_Server
+ *
+ * This class handles all Json requests for the Billing application
+ *
+ * @package     Billing
+ * @subpackage  Frontend
+ */
+class Billing_Frontend_Json extends Tinebase_Frontend_Json_Abstract
+{
+    /**
+     * app name
+     * 
+     * @var string
+     */
+    protected $_applicationName = 'Billing';    
+
+    public function __construct()
+	{
+		$this->vatController = Billing_Controller_Vat::getInstance();
+		$this->articleUnitController = Billing_Controller_ArticleUnit::getInstance();
+		$this->articleGroupController = Billing_Controller_ArticleGroup::getInstance();
+		$this->priceGroupController = Billing_Controller_PriceGroup::getInstance();
+		$this->stockLocationController  = Billing_Controller_StockLocation::getInstance();
+		$this->creditorController  = Billing_Controller_Creditor::getInstance();
+		$this->debitorController  = Billing_Controller_Debitor::getInstance();
+		$this->articleController  = Billing_Controller_Article::getInstance();
+		$this->articleSupplierController  = Billing_Controller_ArticleSupplier::getInstance();
+		$this->articleCustomerController  = Billing_Controller_ArticleCustomer::getInstance();
+		$this->sellPriceController  = Billing_Controller_SellPrice::getInstance();
+		$this->jobController  = Billing_Controller_Job::getInstance();
+		$this->orderController  = Billing_Controller_Order::getInstance();
+		$this->supplyOrderController  = Billing_Controller_SupplyOrder::getInstance();
+		$this->receiptController  = Billing_Controller_Receipt::getInstance();
+		$this->orderPositionController = Billing_Controller_OrderPosition::getInstance();
+		$this->receiptPositionController = Billing_Controller_ReceiptPosition::getInstance();
+		$this->supplyReceiptController  = Billing_Controller_SupplyReceipt::getInstance();
+		$this->supplyOrderPositionController = Billing_Controller_SupplyOrderPosition::getInstance();
+		$this->productionCostController = Billing_Controller_ProductionCost::getInstance();
+		$this->orderTemplateController  = Billing_Controller_OrderTemplate::getInstance();
+		$this->orderTemplatePositionController = Billing_Controller_OrderTemplatePosition::getInstance();
+		$this->openItemController = Billing_Controller_OpenItem::getInstance();
+		$this->stockFlowController = Billing_Controller_StockFlow::getInstance();
+		$this->articleSupplyController = Billing_Controller_ArticleSupply::getInstance();
+		$this->paymentMethodController = Billing_Controller_PaymentMethod::getInstance();
+	}
+	
+	// Vat
+	public function getVat($id){
+		if(!$id ) {
+			$obj = $this->vatController->getEmptyVat();
+		} else {
+			$obj = $this->vatController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchVats($filter,$paging){
+		return $this->_search($filter,$paging,$this->vatController,'Billing_Model_VatFilter');
+	}
+
+	public function deleteVats($ids){
+	}
+	
+	public function saveVat($recordData){
+		return $this->_save($recordData, $this->vatController, 'Vat');
+	}
+	
+	// ArticleUnit
+	public function getArticleUnit($id){
+		if(!$id ) {
+			$obj = $this->articleUnitController->getEmptyArticleUnit();
+		} else {
+			$obj = $this->articleUnitController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchArticleUnits($filter,$paging){
+		return $this->_search($filter,$paging,$this->articleUnitController,'Billing_Model_ArticleUnitFilter');
+	}
+
+	public function deleteArticleUnits($ids){
+		return $this->_delete($ids, $this->articleUnitController);
+	}
+
+	public function saveArticleUnit($recordData){
+		return $this->_save($recordData, $this->articleUnitController, 'ArticleUnit');
+	}
+	
+	// ArticleGroup
+	public function getArticleGroup($id){
+		if(!$id ) {
+			$obj = $this->articleGroupController->getEmptyArticleGroup();
+		} else {
+			$obj = $this->articleGroupController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchArticleGroups($filter,$paging){
+		return $this->_search($filter,$paging,$this->articleGroupController,'Billing_Model_ArticleGroupFilter');
+	}
+
+	public function deleteArticleGroups($ids){
+		return $this->_delete($ids, $this->articleGroupController);
+	}
+
+	public function saveArticleGroup($recordData){
+		return $this->_save($recordData, $this->articleGroupController, 'ArticleGroup');
+	}
+	
+	// PriceGroup
+	public function getPriceGroup($id){
+		if(!$id ) {
+			$obj = $this->priceGroupController->getEmptyPriceGroup();
+		} else {
+			$obj = $this->priceGroupController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function getAllPriceGroups(){
+		return $this->_search(null,null,$this->priceGroupController,'Billing_Model_PriceGroupFilter');
+	}
+	
+	public function searchPriceGroups($filter,$paging){
+		return $this->_search($filter,$paging,$this->priceGroupController,'Billing_Model_PriceGroupFilter');
+	}
+
+	public function deletePriceGroups($ids){
+		return $this->_delete($ids, $this->priceGroupController);
+	}
+
+	public function savePriceGroup($recordData){
+		return $this->_save($recordData, $this->priceGroupController, 'PriceGroup');
+	}
+	
+		// SellPrice
+	public function getSellPrice($id){
+		if(!$id ) {
+			$obj = $this->sellPriceController->getEmptySellPrice();
+		} else {
+			$obj = $this->sellPriceController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchSellPrices($filter,$paging){
+		return $this->_search($filter,$paging,$this->sellPriceController,'Billing_Model_SellPriceFilter');
+	}
+
+	public function deleteSellPrices($ids){
+		return $this->_delete($ids, $this->sellPriceController);
+	}
+
+	public function saveSellPrice($recordData){
+		return $this->_save($recordData, $this->sellPriceController, 'SellPrice');
+	}	
+	
+	// StockLocation
+	public function getStockLocation($id){
+		if(!$id ) {
+			$obj = $this->stockLocationController->getEmptyStockLocation();
+		} else {
+			$obj = $this->stockLocationController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchStockLocations($filter,$paging){
+		return $this->_search($filter,$paging,$this->stockLocationController,'Billing_Model_StockLocationFilter');
+	}
+
+	public function deleteStockLocations($ids){
+		return $this->_delete($ids, $this->stockLocationController);
+	}
+
+	public function saveStockLocation($recordData){
+		return $this->_save($recordData, $this->stockLocationController, 'StockLocation');
+	}
+	
+	// Creditor
+	public function getCreditor($id){
+		if(!$id ) {
+			$obj = $this->creditorController->getEmptyCreditor();
+		} else {
+			$obj = $this->creditorController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchCreditors($filter,$paging){
+		return $this->_search($filter,$paging,$this->creditorController,'Billing_Model_CreditorFilter');
+	}
+
+	public function deleteCreditors($ids){
+		return $this->_delete($ids, $this->creditorController);
+	}
+
+	public function saveCreditor($recordData){
+		return $this->_save($recordData, $this->creditorController, 'Creditor');
+	}
+	
+	// Debitor
+	public function getDebitor($id){
+		if(!$id ) {
+			$obj = $this->debitorController->getEmptyDebitor();
+		} else {
+			$obj = $this->debitorController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+	/**
+	 * 
+	 * Loads a debitor record by it's underlying contacts' identifier
+	 * @param 	int $contactId
+	 * @return	array	result
+	 */
+	public function getDebitorByContactId($contactId){
+		try{
+			$obj = $this->debitorController->getByContactId($contactId);
+			$id = $obj->id;
+			$debitor = $this->debitorController->get($id);
+			$objData = $debitor->toArray();
+			return array(
+				'success' => true,
+				'result' => $objData
+			);
+		}catch(Exception $e){
+			return array(
+				'success' => false,
+				'result' => null,
+				'errorInfo' => $e->__toString()
+			);	
+		}
+	}
+	/**
+	 * 
+	 *  Loads a debitor record by it's underlying contacts' identifier or
+	 *  creates the debitor from contact if it doesn't exist
+	 * @param 	int		$contactId
+	 * @return 	array	result
+	 */
+	public function getDebitorByContactOrCreate($contactId){
+		try{
+			$debitor = $this->debitorController->getByContactOrCreate($contactId);
+			$objData = $debitor->toArray();
+			return array(
+				'success' => true,
+				'result' => $objData
+			);
+		}catch(Exception $e){
+			return array(
+				'success' => false,
+				'result' => null,
+				'errorInfo' => $e->__toString()
+			);	
+		}
+	}
+	/**
+	 * 
+	 * Standard filtered searach
+	 * @param array $filter
+	 * @param array$paging
+	 * @return multitype:boolean unknown |multitype:boolean NULL
+	 */
+	public function searchDebitors($filter,$paging){
+		return $this->_search($filter,$paging,$this->debitorController,'Billing_Model_DebitorFilter');
+	}
+	/**
+	 * 
+	 * Delete debitors by given ids
+	 * @param array $ids
+	 */	
+	public function deleteDebitors($ids){
+		return $this->_delete($ids, $this->debitorController);
+	}
+	/**
+	 * 
+	 * Save a debitor record (create/update)
+	 * @param array $recordData
+	 */
+	public function saveDebitor($recordData){
+		return $this->_save($recordData, $this->debitorController, 'Debitor');
+	}
+	
+	// Article
+	public function getArticle($id){
+		if(!$id ) {
+			$obj = $this->articleController->getEmptyArticle();
+		} else {
+			$obj = $this->articleController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+	
+	public function getAllArticles(){
+		Tinebase_Core::getLogger()->debug('search all articles - retrieve: '.strftime('%M:%S'));
+		$fG = new Billing_Model_ArticleFilter(array());
+		$filter = new Tinebase_Model_Filter_Text('query','contains','');
+		
+		$fG->addFilter($filter);
+		$result = $this->_search($fG,null,$this->articleController,'Billing_Model_ArticleFilter');
+		Tinebase_Core::getLogger()->debug('search all articles - result: '.strftime('%M:%S'));
+		return $result;
+	}
+
+	public function searchArticles($filter,$paging){
+		$result = $this->_search($filter,$paging,$this->articleController,'Billing_Model_ArticleFilter');
+
+		//print_r($result);
+		$result['totalcount'] = $result['totalcount']['count'];
+		return $result;
+	}
+
+	public function deleteArticles($ids){
+		return $this->_delete($ids, $this->articleController);
+	}
+
+	public function saveArticle($recordData){
+		return $this->_save($recordData, $this->articleController, 'Article');
+	}	
+	
+	public function getArticleNumbers(){
+		try{
+			$aArticleNumbers = $this->articleController->getArticleNumbers();
+			return array(
+				'success' => 	true,
+				'data' => 		$aArticleNumbers
+			);
+		}catch(Exception $e){
+			return array(
+				'success' => 	false,
+				'data' => 		null,
+				'errorInfo' =>  $e->__toString()
+			);
+		}
+		
+	}
+	
+	// ArticleSupplier
+	public function getArticleSupplier($id){
+		if(!$id ) {
+			$obj = $this->articleSupplierController->getEmptyArticleSupplier();
+		} else {
+			$obj = $this->articleSupplierController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchArticleSuppliers($filter,$paging){
+		return $this->_search($filter,$paging,$this->articleSupplierController,'Billing_Model_ArticleSupplierFilter');
+	}
+
+	public function deleteArticleSuppliers($ids){
+		return $this->_delete($ids, $this->articleSupplierController);
+	}
+
+	public function saveArticleSupplier($recordData){
+		return $this->_save($recordData, $this->articleSupplierController, 'ArticleSupplier');
+	}
+	
+	// ArticleCustomer
+	public function getArticleCustomer($id){
+		if(!$id ) {
+			$obj = $this->articleCustomerController->getEmptyArticleCustomer();
+		} else {
+			$obj = $this->articleCustomerController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchArticleCustomers($filter,$paging){
+		return $this->_search($filter,$paging,$this->articleCustomerController,'Billing_Model_ArticleCustomerFilter');
+	}
+
+	public function deleteArticleCustomers($ids){
+		return $this->_delete($ids, $this->articleCustomerController);
+	}
+
+	public function saveArticleCustomer($recordData){
+		return $this->_save($recordData, $this->articleCustomerController, 'ArticleCustomer');
+	}
+	
+	// Receipt
+	public function getReceipt($id){
+		if(!$id ) {
+			$obj = $this->receiptController->getEmptyReceipt();
+		} else {
+			$obj = $this->receiptController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchReceipts($filter,$paging){
+		$result = $this->_search($filter,$paging,$this->receiptController,'Billing_Model_ReceiptFilter');
+		//print_r($result);
+		return $result;
+	}
+
+	public function deleteReceipts($ids){
+		
+	}
+	
+	public function deleteReceiptForReverse($receiptId){
+		return $this->_delete(array($receiptId), $this->receiptController);
+	}
+
+	public function saveReceipt($recordData){
+		return $this->_save($recordData, $this->receiptController, 'Receipt');
+	}
+	
+	public function getCalculationVariants($receiptId){
+		return $this->receiptController->getCalculationVariants($receiptId);
+	}
+	
+	// OrderPosition
+	public function getOrderPosition($id){
+		if(!$id ) {
+			$obj = $this->orderPositionController->getEmptyOrderPosition();
+		} else {
+			$obj = $this->orderPositionController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchOrderPositions($filter,$paging){
+		Tinebase_Core::getLogger()->debug('search order pos - retrieve: '.strftime('%M:%S'));
+		$result = $this->_search($filter,$paging,$this->orderPositionController,'Billing_Model_OrderPositionFilter');
+		Tinebase_Core::getLogger()->debug('search order pos - result: '.strftime('%M:%S'));
+		return $result;	
+	}
+
+	public function deleteOrderPositions($ids){
+		return $this->_delete($ids, $this->orderPositionController);
+	}
+
+	public function saveOrderPosition($recordData){
+		return $this->_save($recordData, $this->orderPositionController, 'OrderPosition');
+	}
+	
+	// ReceiptPosition
+	public function getReceiptPosition($id){
+		if(!$id ) {
+			$obj = $this->receiptPositionController->getEmptyReceiptPosition();
+		} else {
+			$obj = $this->receiptPositionController->get($id, false, false);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchReceiptPositions($filter,$paging){
+		Tinebase_Core::getLogger()->debug('search order pos - retrieve: '.strftime('%M:%S'));
+		$result = $this->_search($filter,$paging,$this->receiptPositionController,'Billing_Model_ReceiptPositionFilter');
+		Tinebase_Core::getLogger()->debug('search order pos - result: '.strftime('%M:%S'));
+		return $result;
+	}
+
+	public function deleteReceiptPositions($ids){
+		return $this->_delete($ids, $this->orderPositionController);
+	}
+
+	public function saveReceiptPosition($recordData){
+		$receiptId = null;
+		if(array_key_exists('receipt_id',$recordData)){
+			if($recordData['receipt_id']){
+				$receiptId = $recordData['receipt_id'];
+			}
+		}
+		$orderPosition = $this->_save($recordData, $this->orderPositionController, 'OrderPosition');
+		if($orderPosition instanceof Tinebase_Model_OrderPosition){
+			$orderPosId = $orderPosition->getId();
+		}else{
+			$orderPosId = $orderPosition['id'];
+		}
+		$orderPosition = $this->orderPositionController->get($orderPosId);
+
+		if($receiptId){
+			$receipt = $this->receiptController->get($receiptId);
+			$this->receiptPositionController->addOrderPositions($receipt, array($orderPosition));
+		}
+		return $orderPosition;
+	}
+
+	// Order
+	public function getOrder($id){
+		if(!$id ) {
+			$obj = $this->orderController->getEmptyOrder();
+		} else {
+			$obj = $this->orderController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchOrders($filter,$paging){
+		return $this->_search($filter,$paging,$this->orderController,'Billing_Model_OrderFilter');
+	}
+
+	public function deleteOrders($ids){
+		return $this->_delete($ids, $this->orderController);
+	}
+
+	public function saveOrder($recordData){
+		return $this->_save($recordData, $this->orderController, 'Order');
+	}
+	
+	public function processOrder($orderId, $params){
+		return $this->orderController->processOrder($orderId, $params);
+	}
+	
+	public function orderReceipt($orderId, $receiptId){
+		return $this->orderController->orderReceipt($orderId, $receiptId);
+	}
+	
+	public function createMonition($orderId, $invoiceId){
+		return $this->orderController->createMonition($orderId, $invoiceId);
+	}
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $receiptId
+	 */
+	public function reverseInvoice($receiptId){
+		return $this->orderController->reverseInvoice($receiptId)->toArray();
+	}
+	
+	// Job
+	public function getJob($id){
+		if(!$id ) {
+			$obj = $this->jobController->getEmptyJob();
+		} else {
+			$obj = $this->jobController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchJobs($filter,$paging){
+		return $this->_search($filter,$paging,$this->jobController,'Billing_Model_JobFilter');
+	}
+
+	public function deleteJobs($ids){
+		return $this->_delete($ids, $this->jobController);
+	}
+	
+	public function saveJob($recordData){
+		return $this->_save($recordData, $this->jobController, 'Job');
+	}
+	
+	// SupplyOrder
+	public function getSupplyOrder($id){
+		if(!$id ) {
+			$obj = $this->supplyOrderController->getEmptySupplyOrder();
+		} else {
+			$obj = $this->supplyOrderController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchSupplyOrders($filter,$paging){
+		return $this->_search($filter,$paging,$this->supplyOrderController,'Billing_Model_SupplyOrderFilter');
+	}
+
+	public function deleteSupplyOrders($ids){
+		return $this->_delete($ids, $this->supplyOrderController);
+	}
+
+	public function saveSupplyOrder($recordData){
+		return $this->_save($recordData, $this->supplyOrderController, 'SupplyOrder');
+	}
+	
+// SupplyReceipt
+	public function getSupplyReceipt($id){
+		if(!$id ) {
+			$obj = $this->supplyReceiptController->getEmptySupplyReceipt();
+		} else {
+			$obj = $this->supplyReceiptController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchSupplyReceipts($filter,$paging){
+		return $this->_search($filter,$paging,$this->supplyReceiptController,'Billing_Model_SupplyReceiptFilter');
+	}
+
+	public function deleteSupplyReceipts($ids){
+		return $this->_delete($ids, $this->supplyReceiptController);
+	}
+
+	public function saveSupplyReceipt($recordData){
+		return $this->_save($recordData, $this->supplyReceiptController, 'SupplyReceipt');
+	}
+	
+	// SupplyOrderPosition
+	public function getSupplyOrderPosition($id){
+		if(!$id ) {
+			$obj = $this->supplyOrderPositionController->getEmptySupplyOrderPosition();
+		} else {
+			$obj = $this->supplyOrderPositionController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchSupplyOrderPositions($filter,$paging){
+		return $this->_search($filter,$paging,$this->supplyOrderPositionController,'Billing_Model_SupplyOrderPositionFilter');
+	}
+
+	public function deleteSupplyOrderPositions($ids){
+		return $this->_delete($ids, $this->supplyOrderPositionController);
+	}
+
+	public function saveSupplyOrderPosition($recordData){
+		return $this->_save($recordData, $this->supplyOrderPositionController, 'SupplyOrderPosition');
+	}
+	
+	public function getProductionCost($id){
+		if(!$id ) {
+			$obj = $this->productionCostController->getEmptyProductionCost();
+		} else {
+			$obj = $this->productionCostController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchProductionCosts($filter,$paging){
+		return $this->_search($filter,$paging,$this->productionCostController,'Billing_Model_ProductionCostFilter');
+	}
+
+	public function deleteProductionCosts($ids){
+		return $this->_delete($ids, $this->productionCostController);
+	}
+	
+	public function saveProductionCost($recordData){
+		return $this->_save($recordData, $this->productionCostController, 'ProductionCost');
+	}
+	
+	public function createQuickOrder($data){
+		// get contact -> debitor (create if not exists)
+		// get article prices
+		// create order
+		// create collection of positions
+		// create invoice
+		// if with shipping doc -> create shipping doc
+		$result = $this->orderController->createQuickOrder($data);
+		
+		return array(
+			'success' => true,
+			'data' => $result
+		);
+
+	}
+	
+	// OrderTemplate
+	public function getOrderTemplate($id){
+		if(!$id ) {
+			$obj = $this->orderTemplateController->getEmptyOrderTemplate();
+		} else {
+			$obj = $this->orderTemplateController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchOrderTemplates($filter,$paging){
+		return $this->_search($filter,$paging,$this->orderTemplateController,'Billing_Model_OrderTemplateFilter');
+	}
+
+	public function deleteOrderTemplates($ids){
+		return $this->_delete($ids, $this->orderTemplateController);
+	}
+
+	public function saveOrderTemplate($recordData){
+		return $this->_save($recordData, $this->orderTemplateController, 'OrderTemplate');
+	}
+	
+	// OrderTemplatePosition
+	public function getOrderTemplatePosition($id){
+		if(!$id ) {
+			$obj = $this->orderTemplatePositionController->getEmptyOrderTemplatePosition();
+		} else {
+			$obj = $this->orderTemplatePositionController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchOrderTemplatePositions($filter,$paging){
+		return $this->_search($filter,$paging,$this->orderTemplatePositionController,'Billing_Model_OrderTemplatePositionFilter');
+	}
+
+	public function deleteOrderTemplatePositions($ids){
+		return $this->_delete($ids, $this->orderTemplatePositionController);
+	}
+
+	public function saveOrderTemplatePosition($recordData){
+		return $this->_save($recordData, $this->orderTemplatePositionController, 'OrderTemplatePosition');
+	}
+	
+	// OpenItem
+	public function getOpenItem($id){
+		if(!$id ) {
+			$obj = $this->openItemController->getEmptyOpenItem();
+		} else {
+			$obj = $this->openItemController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchOpenItems($filter,$paging){
+		return $this->_search($filter,$paging,$this->openItemController,'Billing_Model_OpenItemFilter');
+	}
+
+	public function deleteOpenItems($ids){
+		return $this->_delete($ids, $this->openItemController);
+	}
+
+	public function saveOpenItem($recordData){
+		return $this->_save($recordData, $this->openItemController, 'OpenItem');
+	}
+	
+	// StockFlow
+	public function getStockFlow($id){
+		if(!$id ) {
+			$obj = $this->stockFlowController->getEmptyStockFlow();
+		} else {
+			$obj = $this->stockFlowController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchStockFlows($filter,$paging){
+		return $this->_search($filter,$paging,$this->stockFlowController,'Billing_Model_StockFlowFilter');
+	}
+
+	public function deleteStockFlows($ids){
+		return $this->_delete($ids, $this->stockFlowController);
+	}
+
+	public function saveStockFlow($recordData){
+		return $this->_save($recordData, $this->stockFlowController, 'StockFlow');
+	}
+	
+	// ArticleSupply
+	public function getArticleSupply($id){
+		if(!$id ) {
+			$obj = $this->articleSupplyController->getEmptyArticleSupply();
+		} else {
+			$obj = $this->articleSupplyController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchArticleSupplys($filter,$paging){
+		return $this->_search($filter,$paging,$this->articleSupplyController,'Billing_Model_ArticleSupplyFilter');
+	}
+
+	public function deleteArticleSupplys($ids){
+		return $this->_delete($ids, $this->articleSupplyController);
+	}
+
+	public function saveArticleSupply($recordData){
+		return $this->_save($recordData, $this->articleSupplyController, 'ArticleSupply');
+	}
+	
+// PaymentMethod
+	public function getPaymentMethod($id){
+		if(!$id ) {
+			$obj = $this->paymentMethodController->getEmptyPaymentMethod();
+		} else {
+			$obj = $this->paymentMethodController->get($id);
+		}
+		$objData = $obj->toArray();
+
+		return $objData;
+	}
+
+	public function searchPaymentMethods($filter,$paging){
+		return $this->_search($filter,$paging,$this->paymentMethodController,'Billing_Model_PaymentMethodFilter');
+	}
+
+	public function deletePaymentMethods($ids){
+		return $this->_delete($ids, $this->paymentMethodController);
+	}
+
+	public function savePaymentMethod($recordData){
+		$obj = new Billing_Model_PaymentMethod();
+        $obj->setFromArray($recordData);
+        try{
+        	$objId = $obj->getId();
+        	$obj = $this->paymentMethodController->get($objId);
+        	$obj->setFromArray($recordData);
+        	$obj = $this->paymentMethodController->update($obj);
+        }catch(Exception $e){
+        	$obj = $this->paymentMethodController->create($obj);
+        }
+        return $obj->toArray();
+	}
+	
+    public function getPaymentMethodsAsSimpleArray(){
+    	return $this->paymentMethodController->getPaymentMethodsAsSimpleArray();
+    }
+    
+    public function getPaymentMethods(){
+    	return $this->paymentMethodController->getAllPaymentMethods();
+    }
+    
+    /**
+     * Returns registry data of addressbook.
+     * @see Tinebase_Application_Json_Abstract
+     * 
+     * @return mixed array 'variable name' => 'data'
+     */
+    public function getRegistryData()
+    {
+        $registryData = array(
+            'Order' => $this->orderController->getRegistryData(),
+        	'StockLocation' => $this->stockLocationController->getRegistryData(),
+        	'PaymentMethods' => $this->getPaymentMethodsAsSimpleArray()
+//        	'Vat' => $this->vatController->getRegistryData(),
+//        	'PriceGroup' => $this->priceGroupController->getRegistryData(),
+//        	'ArticleGroup' => $this->articleGroupController->getRegistryData(),
+//        	'ArticleUnit' => $this->articleUnitController->getRegistryData()
+        );        
+        return $registryData;    
+    }
+}

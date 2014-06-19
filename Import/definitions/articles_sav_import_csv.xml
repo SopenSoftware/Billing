@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <model>Billing_Model_Article</model>
+    <plugin>Billing_Import_ArticleCsv</plugin>
+    <type>import</type>
+    <headline>1</headline>
+    <dryrun>0</dryrun>
+    <delimiter>;</delimiter>
+    <description>sopen Billing Articles import</description>
+    <mapping>
+        <field>
+            <source>isbn</source>
+            <destination>article_ext_nr</destination>
+        </field>
+        <field>
+            <source>name</source>
+            <destination>name</destination>
+        </field>
+        <field>
+            <source>article_unit_id</source>
+            <destination>article_unit_id</destination>
+        </field>
+        <field>
+            <source>vat_id</source>
+            <destination>vat_id</destination>
+        </field>
+    </mapping>
+</config>

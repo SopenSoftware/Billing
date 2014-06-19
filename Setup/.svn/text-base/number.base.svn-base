@@ -1,0 +1,22 @@
+INSERT INTO `sopen_number_base` (`id`, `key`, `description`, `formula`, `number1`, `number2`, `number3`, `text1`, `text2`, `last_generated`, `calculator_class`) VALUES
+(1, 'card_number_nitrox', 'Test', 'GER / F00 / BREVET / YY / N1', 134, 1322, 0, NULL, NULL, 'GER / F00 /  / 11 / 000134', NULL),
+(2, 'article_nr', '', 'N1', 5, 0, 0, NULL, NULL, '5', NULL),
+(3, 'job_nr', '', 'N1', 1, 0, 0, NULL, NULL, '1', NULL),
+(4, 'order_nr', '', 'N1', 355, 0, 0, NULL, NULL, '355', NULL),
+(5, 'calc_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(6, 'bid_nr', '', 'N1', 1, 0, 0, NULL, NULL, '1', NULL),
+(7, 'confirm_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(8, 'ship_nr', '', 'CONTACTNR/X-N1', 13193, 0, 0, NULL, NULL, '2147525/7-013193', 'Brevetation_Custom_NumberBase_Calculator_ShipNr'),
+(9, 'invoice_nr', '', 'N1', 291, 0, 0, NULL, NULL, '291', ''),
+(10, 'supply_order_nr', '', 'N1', 1, 0, 0, NULL, NULL, '1', NULL),
+(11, 'supply_request_nr', '', 'N1', 1, 0, 0, NULL, NULL, '1', NULL),
+(12, 'supply_offer_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(13, 'supply_order_order_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(14, 'supply_inc_inv_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+
+INSERT INTO `sopen_number_base` (`id`, `key`, `description`, `formula`, `number1`, `number2`, `number3`, `text1`, `text2`, `last_generated`, `calculator_class`) VALUES
+(15, 'credit_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(16, 'op_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(17, 'credit_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(18, 'confirm_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL),
+(19, 'monition_nr', NULL, 'N1', 0, 0, 0, NULL, NULL, NULL, NULL);

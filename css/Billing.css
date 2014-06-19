@@ -1,0 +1,102 @@
+@CHARSET "ISO-8859-1";
+
+.BillingIconCls {
+    background-image:url({$tineVersion}/images/16x16/gcp_rms.png);
+}
+
+.x-btn-medium .BillingIconCls {
+    background-image:url({$tineVersion}/images/22x22/gcp_rms.png) !important;
+}
+.x-btn-large .BillingIconCls {
+    background-image:url({$tineVersion}/images/32x32/gcp_rms.png) !important;
+}
+
+
+.BillingConfig {
+    background-image:url({$tineVersion}/images/oxygen/16x16/actions/configure.png) !important;
+}
+
+.BillingAdmin {
+    background-image:url({$tineVersion}/images/oxygen/16x16/categories/applications-accessories.png) !important;
+}
+
+.BillingOrder {
+    background-image:url({$tineVersion}/images/oxygen/16x16/actions/run-build.png) !important;
+}
+
+.BillingOpenItem {
+    background-image:url({$tineVersion}/images/oxygen/16x16/actions/whatsnext.png) !important;
+}
+
+.BillingPayment {
+    background-image:url({$tineVersion}/images/oxygen/16x16/status/wallet-open.png) !important;
+}
+
+.action_dtaExport {
+    background-image:url({$tineVersion}/images/16x16/coins.png) !important;
+}
+.x-btn-medium .action_dtaExport {
+    background-image:url({$tineVersion}/images/22x22/coins.png) !important;
+}
+.x-btn-large .action_dtaExport {
+    background-image:url({$tineVersion}/images/32x32/coins.png) !important;
+}
+
+.action_monition {
+    background-image:url({$tineVersion}/images/16x16/bell_go.png) !important;
+}
+.x-btn-medium .action_monition {
+    background-image:url({$tineVersion}/images/22x22/bell_go.png) !important;
+}
+.x-btn-large .action_monition {
+    background-image:url({$tineVersion}/images/32x32/bell_go.png) !important;
+}
+
+.action_stockFlowInc {
+    background-image:url(../../images/oxygen/16x16/actions/file-import.png) !important;
+}
+.x-btn-medium .action_stockFlowInc {
+    background-image:url(../../images/oxygen/22x22/actions/file-import.png) !important;
+}
+.x-btn-large .action_stockFlowInc {
+    background-image:url(../../images/oxygen/32x32/actions/file-import.png) !important;
+}
+
+.action_stockFlowDec {
+    background-image:url(../../images/oxygen/16x16/actions/file-export.png) !important;
+}
+.x-btn-medium .action_stockFlowDec {
+    background-image:url(../../images/oxygen/22x22/actions/file-export.png) !important;
+}
+.x-btn-large .action_stockFlowDec {
+    background-image:url(../../images/oxygen/32x32/actions/file-export.png) !important;
+}
+
+.dta940-red .x-grid-cell { 
+    background-color: #ffa; 
+    border-bottom-color: #ffc; 
+    border-top-color: #ff5; 
+    color: #009; 
+}
+
+
+.bactToolOpenSepaMandate {
+    background-image:url({$tineVersion}/images/16x16/list_keys.gif) !important;
+}
+
+.bactToolOpenBankAccount {
+    background-image:url({$tineVersion}/images/16x16/edit_bank_account.gif) !important;
+}
+
+.bactToolUnlinkBankAccount {
+    background-image:url({$tineVersion}/images/16x16/unlink_bank_account.gif) !important;
+}
+
+.bactToolToggleBankAccountLock {
+    background-image:url({$tineVersion}/images/16x16/toggle_bank_account_lock.gif) !important;
+}
+
+.bactToolUpdateBankAccount {
+    background-image:url({$tineVersion}/images/16x16/update_bank_account.gif) !important;
+}
+

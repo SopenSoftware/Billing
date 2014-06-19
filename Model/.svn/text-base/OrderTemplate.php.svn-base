@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * class to hold Brevet data
+ *
+ * @package     Billing
+ */
+class Billing_Model_OrderTemplate extends Tinebase_Record_Abstract
+{
+    /**
+     * key in $_validators/$_properties array for the filed which
+     * represents the identifier
+     *
+     * @var string
+     */
+    protected $_identifier = 'id';
+    
+    /**
+     * application the record belongs to
+     *
+     * @var string
+     */
+    protected $_application = 'Billing';
+    
+    /**
+     * list of zend validator
+     *
+     * this validators get used when validating user generated content with Zend_Input_Filter
+     *
+     * @var array
+     *
+     */
+    protected $_validators = array(
+        'id'                    => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+    	'debitor_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'job_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => 0),
+	    'price_group_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'account_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'name'					=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+		'description'			=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+		'with_calculation'		=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'with_bid'				=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+		'with_confirm'			=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+		'with_ship_doc'			=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+		'with_invoice'	 		=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+		'created_by'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'creation_time'         => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'last_modified_by'      => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'last_modified_time'    => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'is_deleted'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'deleted_time'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'deleted_by'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'tags'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'notes'                 => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'customfields'          => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => array())
+    );
+    protected $_dateFields = array(
+    // modlog
+     	'creation_time',
+        'last_modified_time',
+        'deleted_time'
+    );
+    
+	public function setFromArray(array $_data)
+	{
+		if(empty($_data['debitor_id']) || $_data['debitor_id']==""){
+			unset($_data['debitor_id']);
+		}
+		if(empty($_data['job_id']) || $_data['job_id']==""){
+			unset($_data['job_id']);
+		}
+		if(empty($_data['price_group_id']) || $_data['price_group_id']==""){
+			unset($_data['price_group_id']);
+		}
+		if(empty($_data['account_id']) || $_data['account_id']==""){
+			unset($_data['account_id']);
+		}
+		parent::setFromArray($_data);
+	}
+
+	protected function _setFromJson(array &$_data)
+	{
+		if(empty($_data['debitor_id']) || $_data['debitor_id']==""){
+			unset($_data['debitor_id']);
+		}
+		if(empty($_data['job_id']) || $_data['job_id']==""){
+			unset($_data['job_id']);
+		}
+		if(empty($_data['price_group_id']) || $_data['price_group_id']==""){
+			unset($_data['price_group_id']);
+		}
+		if(empty($_data['account_id']) || $_data['account_id']==""){
+			unset($_data['account_id']);
+		}
+	} 
+}

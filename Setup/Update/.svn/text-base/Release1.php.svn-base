@@ -1,0 +1,839 @@
+<?php
+/**
+ *
+ *
+ * @author hhartl
+ *
+ */
+
+/**
+ * Migration of Brevetation app
+ */
+
+class Billing_Setup_Update_Release1 extends Setup_Update_Abstract{
+	/**
+	 * Add column is_default to price_group
+	 */
+	public function update_0(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+	                <name>is_default</name>
+	                <type>boolean</type>
+					<default>false</default>
+	            </field>');
+		$this->_backend->addCol('bill_price_group', $declaration);
+		$this->setApplicationVersion('Billing', '1.1');
+	}
+
+	/**
+	 * Add column article_nr to article
+	 */
+	public function update_1(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>article_nr</name>
+                    <type>text</type>
+                    <length>64</length>
+                </field>');
+		$this->_backend->addCol('bill_article', $declaration);
+		$this->setApplicationVersion('Billing', '1.2');
+	}
+
+	/**
+	 * Add column article_nr to article
+	 */
+	public function update_2(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>template_id</name>
+                    <type>text</type>
+					<length>40</length>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>');
+		$this->_backend->addCol('bill_receipt', $declaration);
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>preview_template_id</name>
+                    <type>text</type>
+					<length>40</length>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>'
+		);
+        $this->_backend->addCol('bill_receipt', $declaration);
+        $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>template_id</name>
+                    <type>text</type>
+					<length>40</length>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>');
+         $this->_backend->addCol('bill_supply_receipt', $declaration);
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>preview_template_id</name>
+                    <type>text</type>
+					<length>40</length>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>'
+         );
+         $this->_backend->addCol('bill_supply_receipt', $declaration);
+         
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>additional_data</name>
+                    <type>clob</type>
+                    <notnull>false</notnull>
+                </field>');
+         $this->_backend->addCol('bill_receipt_position', $declaration);
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>additional_data</name>
+                    <type>clob</type>
+                    <notnull>false</notnull>
+                </field>'
+         );
+         $this->_backend->addCol('bill_supply_receipt_position', $declaration);
+
+	     $this->setApplicationVersion('Billing', '1.3');
+	}
+	
+	public function update_3(){
+		$tableDefinition = '
+		<table>
+			<name>bill_order_template</name>	
+			<version>1</version>
+			<engine>InnoDB</engine>
+	     	<charset>utf8</charset>
+			<declaration>
+                <field>
+                    <name>id</name>
+                    <type>integer</type>
+                    <autoincrement>true</autoincrement>
+                </field>
+				<field>
+                    <name>debitor_id</name>
+                    <type>integer</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>account_id</name>
+                    <type>text</type>
+                    <length>40</length>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>price_group_id</name>
+                    <type>integer</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>job_id</name>
+                    <type>integer</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>name</name>
+                    <type>text</type>
+                    <notnull>256</notnull>
+			    </field>
+				<field>
+                    <name>description</name>
+                    <type>text</type>
+					<default>null</default>
+			    </field>
+				<field>
+                    <name>with_calculation</name>
+                    <type>boolean</type>
+                    <default>false</default>
+			    </field>
+				<field>
+                    <name>with_bid</name>
+                    <type>boolean</type>
+                    <default>false</default>
+			    </field>
+				<field>
+                    <name>with_confirm</name>
+                    <type>boolean</type>
+                    <default>false</default>
+			    </field>
+				<field>
+                    <name>with_shipdoc</name>
+                    <type>boolean</type>
+                    <default>false</default>
+			    </field>
+				<field>
+                    <name>with_invoice</name>
+                    <type>boolean</type>
+                    <default>false</default>
+			    </field>
+				<field>
+                    <name>created_by</name>
+                    <type>text</type>
+                    <length>40</length>
+                </field>
+                <field>
+                    <name>creation_time</name>
+                    <type>datetime</type>
+                </field> 
+                <field>
+                    <name>last_modified_by</name>
+                    <type>text</type>
+                    <length>40</length>
+                </field>
+                <field>
+                    <name>last_modified_time</name>
+                    <type>datetime</type>
+                </field>
+                <field>
+                    <name>is_deleted</name>
+                    <type>boolean</type>
+                    <default>false</default>
+                </field>
+                <field>
+                    <name>deleted_by</name>
+                    <type>text</type>
+                    <length>40</length>
+                </field>            
+                <field>
+                    <name>deleted_time</name>
+                    <type>datetime</type>
+                </field>
+				<index>
+                    <name>id</name>
+                    <primary>true</primary>
+                    <field>
+                        <name>id</name>
+                    </field>
+                </index>
+			</declaration>
+		</table>
+		';
+		$table = Setup_Backend_Schema_Table_Factory::factory('String', $tableDefinition);
+		$this->_backend->createTable($table);
+		
+		$tableDefinition = '
+		<table>
+			<name>bill_order_template_position</name>	
+			<version>1</version>
+			<engine>InnoDB</engine>
+	     	<charset>utf8</charset>
+			<declaration>
+                <field>
+                    <name>id</name>
+                    <type>integer</type>
+                    <autoincrement>true</autoincrement>
+                </field>
+				<field>
+                    <name>order_template_id</name>
+                    <type>integer</type>
+                    <notnull>true</notnull>
+                </field>
+				<field>
+                    <name>article_id</name>
+                    <type>integer</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>price_group_id</name>
+                    <type>integer</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>unit_id</name>
+                    <type>integer</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>vat_id</name>
+                    <type>integer</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>position_nr</name>
+                    <type>integer</type>
+                    <notnull>true</notnull>
+                </field>				
+
+				<field>
+                    <name>price_netto</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>amount</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>discount_percentage</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>discount_total</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>weight</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>name</name>
+                    <type>text</type>
+                    <length>256</length>
+					<notnull>false</notnull>
+                </field>
+				<field>
+                    <name>description</name>
+                    <type>text</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>total_netto</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>total_brutto</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+			    </field>
+				<field>
+                    <name>total_weight</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+			    </field>
+				<field>
+                    <name>optional</name>
+                    <type>boolean</type>
+                    <default>false</default>
+			    </field>
+				<field>
+                    <name>additional_data</name>
+                    <type>clob</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+                    <name>active</name>
+                    <type>boolean</type>
+                    <default>true</default>
+			    </field>
+				<field>
+                    <name>single_usage</name>
+                    <type>boolean</type>
+                    <default>false</default>
+			    </field>
+				<index>
+                    <name>id</name>
+                    <primary>true</primary>
+                    <field>
+                        <name>id</name>
+                    </field>
+                </index>
+				<index>
+                    <name>fk_pos_order_template</name>
+                    <foreign>true</foreign>
+                    <field>
+                        <name>order_template_id</name>
+                    </field>
+ 					<reference>
+                        <table>bill_order_template</table>
+                        <field>id</field>
+                        <ondelete>CASCADE</ondelete>
+						<onupdate>CASCADE</onupdate>
+                    </reference>				
+                </index>
+			</declaration>
+		</table>
+		';
+		$table = Setup_Backend_Schema_Table_Factory::factory('String', $tableDefinition);
+		$this->_backend->createTable($table);
+		 $this->setApplicationVersion('Billing', '1.4');
+	}
+	
+	public function update_4(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>vat_id</name>
+                    <type>integer</type>
+                    <notnull>false</notnull>
+                    <default>null</default>
+                </field>'
+         );
+         $this->_backend->addCol('bill_debitor', $declaration);
+
+	     $this->setApplicationVersion('Billing', '1.5');
+	}
+	
+	public function update_5(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>op_nr</name>
+                    <type>text</type>
+					<length>24</length>
+                    <notnull>false</notnull>
+                </field>'
+         );
+         $this->_backend->addCol('bill_open_item', $declaration);
+
+	     $this->setApplicationVersion('Billing', '1.6');
+	}
+	
+	public function update_6(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>creditor_id</name>
+                    <type>integer</type>
+                    <notnull>false</notnull>
+                    <default>null</default>
+                </field>'
+         );
+         $this->_backend->addCol('bill_stock_flow', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>debitor_id</name>
+                    <type>integer</type>
+                    <notnull>false</notnull>
+                    <default>null</default>
+                </field>'
+         );
+         $this->_backend->addCol('bill_stock_flow', $declaration);
+
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>article_id</name>
+                    <type>integer</type>
+                    <notnull>true</notnull>
+                </field>'
+         );
+         $this->_backend->addCol('bill_article_supply', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+	                <name>is_default</name>
+	                <type>boolean</type>
+					<default>false</default>
+	            </field>'
+         );
+         $this->_backend->addCol('bill_stock_location', $declaration);
+         					
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>amount</name>
+                    <type>float</type>
+					<unsigned>false</unsigned>
+					<default>0</default>
+			    </field>'
+         );
+         $this->_backend->alterCol('bill_article_supply', $declaration);
+	     $this->setApplicationVersion('Billing', '1.7');
+	}
+	
+	public function update_7(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+	                <name>factor</name>
+	                <type>float</type>
+					<notnull>true</notnull>
+					<default>1</default>
+	            </field>'
+         );
+         $this->_backend->addCol('bill_article_unit', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+	                <name>factor</name>
+	                <type>float</type>
+					<notnull>true</notnull>
+					<default>1</default>
+	            </field>'
+         );
+         $this->_backend->addCol('bill_order_position', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+	                <name>factor</name>
+	                <type>float</type>
+					<notnull>true</notnull>
+					<default>1</default>
+	            </field>'
+         );
+         $this->_backend->addCol('bill_order_template_position', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>price_brutto</name>
+                    <type>float</type>
+					<default>0</default>
+                    <notnull>false</notnull>
+                </field>'
+         );
+         $this->_backend->addCol('bill_order_template_position', $declaration);
+         				
+         $this->setApplicationVersion('Billing', '1.8');
+	}
+	
+	public function update_8(){
+		 
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>additional_template_data</name>
+                    <type>text</type>
+                    <notnull>false</notnull>
+                </field>'
+         );
+         $this->_backend->addCol('bill_receipt', $declaration);
+         				
+         $this->setApplicationVersion('Billing', '1.81');
+	}
+	
+	public function update_81(){
+		 
+         $declaration = new Setup_Backend_Schema_Index_Xml('
+				<index>
+                    <name>article_nr</name>
+                    <field>
+                        <name>article_nr</name>
+                    </field>
+                </index>'
+         );
+         $this->_backend->addIndex('bill_article', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Index_Xml('
+				<index>
+                    <name>article_ext_nr</name>
+                    <field>
+                        <name>article_ext_nr</name>
+                    </field>
+                </index>'
+         );
+         $this->_backend->addIndex('bill_article', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Index_Xml('
+				<index>
+                    <name>name</name>
+                    <field>
+                        <name>name</name>
+                    </field>
+                </index>'
+         );
+         $this->_backend->addIndex('bill_article', $declaration);
+         	
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>price_netto</name>
+                    <type>float</type>
+					<unsigned>false</unsigned>
+			    </field>'
+         );
+         $this->_backend->alterCol('bill_sell_price', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>price_brutto</name>
+                    <type>float</type>
+					<unsigned>false</unsigned>
+			    </field>'
+         );
+         $this->_backend->alterCol('bill_sell_price', $declaration);
+         
+         $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>price_netto</name>
+                    <type>float</type>
+					<unsigned>false</unsigned>
+			    </field>'
+         );
+         $this->_backend->alterCol('bill_stock_flow', $declaration);
+         
+         $this->setApplicationVersion('Billing', '1.82');
+	}
+	
+	public function update_82(){
+		$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>factor</name>
+                    <type>float</type>
+					<unsigned>false</unsigned>					
+                    <notnull>true</notnull>
+					<default>1</default>
+                </field>'
+         );
+         if(!$this->_backend->columnExists('factor', 'bill_order_position')){
+         	$this->_backend->addCol('bill_order_position', $declaration);
+         }
+         
+         if(!$this->_backend->columnExists('factor', 'bill_order_position')){
+         	$this->_backend->addCol('bill_receipt_position', $declaration);
+         }
+         
+         if(!$this->_backend->columnExists('factor', 'bill_order_position')){
+         	$this->_backend->addCol('bill_order_template_position', $declaration);
+         }
+         
+         $this->setApplicationVersion('Billing', '1.83');
+		
+		
+						
+	}
+	
+	public function update_83(){
+			$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>fibu_exp_date</name>
+                    <type>date</type>
+                    <notnull>false</notnull>
+					<default>null</default>
+			    </field>'
+         );
+         if(!$this->_backend->columnExists('fibu_exp_date', 'bill_debitor')){
+         	$this->_backend->addCol('bill_debitor', $declaration);
+         }
+		
+         
+         $this->setApplicationVersion('Billing', '1.84');
+				
+	}
+	
+	public function update_84(){
+			$declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>due_date</name>
+                    <type>date</type>
+					<default>null</default>
+                    <notnull>false</notnull>
+			    </field>'
+         );
+         if(!$this->_backend->columnExists('due_date', 'bill_receipt')){
+         	$this->_backend->addCol('bill_receipt', $declaration);
+         }
+		 
+         $this->setApplicationVersion('Billing', '1.85');
+				
+	}
+	
+	public function update_85(){
+		$declaration = new Setup_Backend_Schema_Table_Xml('
+		<table>
+			<name>bill_payment_method</name>
+			<version>1</version>
+			<engine>InnoDB</engine>
+	     	<charset>utf8</charset>
+			<declaration>
+                <field>
+                    <name>id</name>
+                   	<type>text</type>
+					<length>40</length>
+                    <notnull>true</notnull>
+                </field>
+                <field>
+                    <name>invoice_template_id</name>
+                    <type>text</type>
+					<length>40</length>
+					<default>null</default>
+                    <notnull>false</notnull>
+                </field>
+				<field>
+	                <name>name</name>
+	                <type>text</type>
+					<length>64</length>
+					<notnull>true</notnull>
+	            </field>
+				<field>
+	                <name>processor_class</name>
+	                <type>text</type>
+					<length>16</length>
+					<notnull>false</notnull>
+					<default>null</default>
+	            </field>
+				<field>
+	                <name>text1</name>
+	                <type>text</type>
+					<notnull>false</notnull>
+					<default>null</default>
+	            </field>
+				<field>
+	                <name>text2</name>
+	                <type>text</type>
+					<notnull>false</notnull>
+					<default>null</default>
+	            </field>
+				<field>
+	                <name>is_default</name>
+	                <type>boolean</type>
+	                <notnull>true</notnull>
+					<default>false</default>
+	            </field>
+                <index>
+                    <name>id</name>
+                    <primary>true</primary>
+                    <field>
+                        <name>id</name>
+                    </field>
+                </index>
+				<index>
+                    <name>name</name>
+                    <field>
+                        <name>name</name>
+                    </field>
+                </index>
+     		</declaration>
+		</table>'
+         );
+        $this->_backend->createTable($declaration);
+        
+        $this->_backend->execInsertStatement(new SimpleXMLElement('
+		<record>
+			<table>
+				<name>bill_payment_method</name>
+			</table>
+			<field>
+				<name>id</name>
+				<value>NOVALUE</value>
+			</field>
+			<field>
+				<name>name</name>
+				<value>keine Auswahl</value>
+			</field>
+			<field>
+				<name>text1</name>
+				<value></value>
+			</field>			
+		</record>'));
+        
+        $this->_backend->execInsertStatement(new SimpleXMLElement('
+		<record>
+			<table>
+				<name>bill_payment_method</name>
+			</table>
+			<field>
+				<name>id</name>
+				<value>CASH</value>
+			</field>
+			<field>
+				<name>name</name>
+				<value>Barzahlung</value>
+			</field>
+			<field>
+				<name>text1</name>
+				<value>Betrag dankend erhalten</value>
+			</field>			
+		</record>'));
+        
+        $this->_backend->execInsertStatement(new SimpleXMLElement('
+		<record>
+			<table>
+				<name>bill_payment_method</name>
+			</table>
+			<field>
+				<name>id</name>
+				<value>DEBIT</value>
+			</field>
+			<field>
+				<name>name</name>
+				<value>Lastschrift</value>
+			</field>
+			<field>
+				<name>text1</name>
+				<value>Wir werden den Rechnungsbetrag von Ihrem Bankkonto einziehen.</value>
+			</field>			
+		</record>'));
+                
+        $this->_backend->execInsertStatement(new SimpleXMLElement('
+		<record>
+			<table>
+				<name>bill_payment_method</name>
+			</table>
+			<field>
+				<name>id</name>
+				<value>BANKTRANSFER</value>
+			</field>
+			<field>
+				<name>name</name>
+				<value>Lastschrift</value>
+			</field>
+			<field>
+				<name>text1</name>
+				<value>Der Rechnungsbetrag ist zahlbar binnen 14 Tagen ohne Abzug.</value>
+			</field>			
+		</record>'));
+		$this->setApplicationVersion('Billing', '1.86');
+				
+	}
+	
+	public function update_86(){
+		 $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>payment_method_id</name>
+                   	<type>text</type>
+					<length>40</length>
+                    <notnull>true</notnull>
+                </field>'
+         );
+         
+         $indexDeclaration = new Setup_Backend_Schema_Index_Xml('
+				<index>
+                    <name>payment_method_id</name>
+                    <field>
+                        <name>payment_method_id</name>
+                    </field>
+                </index>'
+         );
+         
+         
+         if(!$this->_backend->columnExists('payment_method_id', 'bill_order')){
+         		$this->_backend->addCol('bill_order', $declaration);
+         		$this->_backend->addIndex('bill_order', $indexDeclaration);
+         }
+		 if(!$this->_backend->columnExists('payment_method_id', 'bill_receipt')){
+         		$this->_backend->addCol('bill_receipt', $declaration);
+         		$this->_backend->addIndex('bill_receipt', $indexDeclaration);
+         }
+         
+         $this->setApplicationVersion('Billing', '1.87');
+				
+	}
+	
+	public function update_87(){
+	     $declaration = new Setup_Backend_Schema_Field_Xml('
+				<field>
+                    <name>sort_order</name>
+                    <type>integer</type>
+                    <length>4</length>
+					<default>0</default>
+                    <notnull>true</notnull>
+                </field>'
+         );
+         $this->_backend->addCol('bill_payment_method', $declaration);
+         				
+         $this->setApplicationVersion('Billing', '1.88');
+	}
+	
+}
+?>

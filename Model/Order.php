@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * class to hold Brevet data
+ *
+ * @package     Billing
+ */
+class Billing_Model_Order extends Tinebase_Record_Abstract
+{
+	const CONFIRM_STATE_UNCONFIRMED = 'UNCONFIRMED';
+	const CONFIRM_STATE_CONFIRMED = 'CONFIRMED';
+	
+	const DELIVERY_STATE_TOBEDELIVERED = 'TOBEDELIVERED';
+	const DELIVERY_STATE_PARTLYDELIVERED = 'PARTLYDELIVERED';
+	const DELIVERY_STATE_DELIVERED = 'DELIVERED';
+	
+	const BILLING_STATE_TOBEBILLED = 'TOBEBILLED';
+	const BILLING_STATE_PARTLYBILLED = 'PARTLYBILLED';
+	const BILLING_STATE_BILLED = 'BILLED';
+	
+    /**
+     * key in $_validators/$_properties array for the filed which
+     * represents the identifier
+     *
+     * @var string
+     */
+    protected $_identifier = 'id';
+    
+    /**
+     * application the record belongs to
+     *
+     * @var string
+     */
+    protected $_application = 'Billing';
+    
+    /**
+     * list of zend validator
+     *
+     * this validators get used when validating user generated content with Zend_Input_Filter
+     *
+     * @var array
+     *
+     */
+    protected $_validators = array(
+        'id'                    => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => NULL),
+    	'erp_context_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'debitor_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'job_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => 0),
+	    'price_group_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+	    'account_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+     	'payment_method_id'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+     	'order_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+       	'cust_order_nr'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+     	// modlog
+       	'created_by'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'creation_time'         => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'last_modified_by'      => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'last_modified_time'    => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'is_deleted'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'deleted_time'          => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'deleted_by'            => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'confirm_state'		 	=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'confirm_date'			=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'delivery_state'		 	=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'bill_state'		 	=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'payment_state'		 	=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	'payment_until_date'		 	=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+//    	'op_netto'		 	=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+//    	'op_brutto'		 	=> array(Zend_Filter_Input::ALLOW_EMPTY => true),
+    	// tags, notes etc.
+    	'tags'                  => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'notes'                 => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        //'relations'             => array(Zend_Filter_Input::ALLOW_EMPTY => true),
+        'customfields'          => array(Zend_Filter_Input::ALLOW_EMPTY => true, Zend_Filter_Input::DEFAULT_VALUE => array())//,
+    	// context: application context for further, app specific filtering
+    	//'context'          => array(Zend_Filter_Input::ALLOW_EMPTY => true)
+    );
+    protected $_dateFields = array(
+    // modlog
+     	'creation_time',
+        'last_modified_time',
+        'deleted_time'
+    );
+    
+    public function setFromArray(array $_data)
+	{
+		if(empty($_data['job_id']) || $_data['job_id']==""){
+			unset($_data['job_id']);
+		}
+		if(empty($_data['confirm_date']) || $_data['confirm_date']==""){
+			unset($_data['confirm_date']);
+		}
+		if(empty($_data['payment_until_date']) || $_data['payment_until_date']==""){
+			unset($_data['payment_until_date']);
+		}	
+		parent::setFromArray($_data);
+	}
+
+	protected function _setFromJson(array &$_data)
+	{
+		if(empty($_data['job_id']) || $_data['job_id']==""){
+			unset($_data['job_id']);
+		}
+		if(empty($_data['confirm_date']) || $_data['confirm_date']==""){
+			unset($_data['confirm_date']);
+		}
+		if(empty($_data['payment_until_date']) || $_data['payment_until_date']==""){
+			unset($_data['payment_until_date']);
+		}			
+	}    
+	
+	public function setConfirmed($confirmDate){
+		$this->__set('confirm_date', $confirmDate);
+		$this->__set('confirm_state', self::CONFIRM_STATE_CONFIRMED);
+	}
+	
+	public function setPartlyDelivered(){
+		$this->__set('delivery_state', self::DELIVERY_STATE_PARTLYDELIVERED);
+	}
+	
+	public function setDelivered(){
+		$this->__set('delivery_state', self::DELIVERY_STATE_DELIVERED);
+	}
+	
+	public function setPartlyBilled(){
+		$this->__set('bill_state', self::BILLING_STATE_PARTLYBILLED);
+	}
+	
+	public function setBilled(){
+		$this->__set('bill_state', self::BILLING_STATE_BILLED);
+	}
+}
